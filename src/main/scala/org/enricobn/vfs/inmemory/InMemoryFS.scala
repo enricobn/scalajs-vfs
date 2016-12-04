@@ -1,7 +1,5 @@
 package org.enricobn.vfs.inmemory
 
-import java.util.Objects
-
 import org.enricobn.vfs.{VirtualFS, VirtualFolder, VirtualUsersManager}
 
 /**
@@ -11,7 +9,7 @@ class InMemoryFS(usersManager: VirtualUsersManager) extends VirtualFS {
   val root = new InMemoryFolder(usersManager, null, "/")
 
   def create(usersManager: VirtualUsersManager): VirtualFS = {
-    Objects.nonNull(usersManager)
+    require(usersManager != null)
     new InMemoryFS(usersManager)
   }
 
