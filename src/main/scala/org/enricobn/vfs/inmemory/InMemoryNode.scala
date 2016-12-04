@@ -7,7 +7,7 @@ import org.enricobn.vfs._
   */
 class InMemoryNode(usersManager: VirtualUsersManager, parent: InMemoryFolder, private val name: String)
 extends VirtualNode {
-  private val owner: String = null
+  private val owner: String = usersManager.getCurrentUser
   private val permissions: InMemoryPermissions = new InMemoryPermissions
   private var executable: Boolean = false
 
