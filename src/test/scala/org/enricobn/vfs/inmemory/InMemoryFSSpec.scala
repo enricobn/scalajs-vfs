@@ -1,7 +1,6 @@
-package prg.enricobn.vfs.inmemory
+package org.enricobn.vfs.inmemory
 
 import org.enricobn.vfs.VirtualUsersManager
-import org.enricobn.vfs.inmemory.InMemoryFS
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{FlatSpec, Matchers}
 

@@ -5,7 +5,7 @@ import org.enricobn.vfs._
 /**
   * Created by enrico on 12/2/16.
   */
-class InMemoryNode(usersManager: VirtualUsersManager, parent: InMemoryFolder, private val name: String)
+class InMemoryNode(usersManager: VirtualUsersManager, parent: VirtualFolder, private val name: String)
 extends VirtualNode {
   private val owner: String = usersManager.getCurrentUser
   private val permissions: InMemoryPermissions = new InMemoryPermissions
@@ -33,8 +33,6 @@ extends VirtualNode {
     this.executable = executable
   }
 
-  private[inmemory] def getInMemoryParent: InMemoryFolder = parent
-
   @throws[VirtualSecurityException]
   private[inmemory] def checkWriteAccess(node: VirtualNode) {
     usersManager.checkWriteAccess(node)
@@ -42,17 +40,4 @@ extends VirtualNode {
 
   private[inmemory] def getUsersManager: VirtualUsersManager = usersManager
 
-  def canEqual(other: Any): Boolean = other.isInstanceOf[InMemoryNode]
-
-  override def equals(other: Any): Boolean = other match {
-    case that: InMemoryNode =>
-      (that canEqual this) &&
-        name == that.name
-    case _ => false
-  }
-
-  override def hashCode(): Int = {
-    val state = Seq(name)
-    state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
-  }
 }

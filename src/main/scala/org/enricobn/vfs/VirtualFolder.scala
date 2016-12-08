@@ -1,7 +1,5 @@
 package org.enricobn.vfs
 
-import java.io.Serializable
-
 /**
   * Created by enrico on 12/2/16.
   */
@@ -16,7 +14,10 @@ trait VirtualFolder extends VirtualNode {
   def mkdir(name: String): VirtualFolder
 
   @throws[VirtualIOException]
-  def delete()
+  def deleteFile(name: String)
+
+  @throws[VirtualIOException]
+  def deleteFolder(name: String)
 
   @throws[VirtualIOException]
   def touch(name: String): VirtualFile
@@ -86,7 +87,7 @@ trait VirtualFolder extends VirtualNode {
         if (result.getParent != null) {
           result = result.getParent
         }
-      } else if (element == ".") {
+      } else if (element != ".") {
         result = result.findFolderOrThrow(element, folder => true)
       }
     }

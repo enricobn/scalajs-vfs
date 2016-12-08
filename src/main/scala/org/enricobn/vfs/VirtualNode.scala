@@ -28,4 +28,18 @@ trait VirtualNode {
     }
     "/"
   }
+
+  def canEqual(other: Any): Boolean = other.isInstanceOf[VirtualNode]
+
+  override def equals(other: Any): Boolean = other match {
+    case that: VirtualNode =>
+      (that canEqual this) &&
+        getPath == that.getPath
+    case _ => false
+  }
+
+  override def hashCode(): Int = {
+    val state = Seq(getPath)
+    state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+  }
 }

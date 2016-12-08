@@ -1,13 +1,11 @@
 package org.enricobn.vfs.inmemory
 
-import java.io.Serializable
-
 import org.enricobn.vfs._
 
 /**
   * Created by enrico on 12/2/16.
   */
-class InMemoryFolder(usersManager: VirtualUsersManager, parent: InMemoryFolder, name: String)
+class InMemoryFolder(usersManager: VirtualUsersManager, parent: VirtualFolder, name: String)
 extends InMemoryNode(usersManager, parent, name)
 with VirtualFolder {
   private val files = new scala.collection.mutable.HashSet[VirtualFile]
@@ -47,18 +45,34 @@ with VirtualFolder {
   }
 
   @throws[VirtualIOException]
-  def delete() {
+  def deleteFile(name: String) {
     try {
       checkWriteAccess(this)
     }
     catch {
       case e: VirtualSecurityException =>
-        throw new VirtualIOException("delete: " + e.getMessage, e)
+        throw new VirtualIOException("deleteFile: " + e.getMessage, e)
     }
-    if (getParent == null) {
-      throw new VirtualIOException("cannot delete root folder")
+    val file = files.find(_.getName == name)
+    if (file.isDefined)
+      files.remove(file.get)
+    else
+      throw new VirtualIOException("No such file")
+  }
+
+  def deleteFolder(name: String) {
+    try {
+      checkWriteAccess(this)
     }
-    getInMemoryParent.folders.remove(this)
+    catch {
+      case e: VirtualSecurityException =>
+        throw new VirtualIOException("deleteFolder: " + e.getMessage, e)
+    }
+    val folder = folders.find(_.getName == name)
+    if (folder.isDefined)
+      folders.remove(folder.get)
+    else
+      throw new VirtualIOException("No such file")
   }
 
   @throws[VirtualIOException]
