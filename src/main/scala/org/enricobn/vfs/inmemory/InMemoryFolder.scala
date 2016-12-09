@@ -8,39 +8,39 @@ import org.enricobn.vfs._
 class InMemoryFolder(usersManager: VirtualUsersManager, parent: VirtualFolder, name: String)
 extends InMemoryNode(usersManager, parent, name)
 with VirtualFolder {
-  private val files = new scala.collection.mutable.HashSet[VirtualFile]
-  private val folders = new scala.collection.mutable.HashSet[InMemoryFolder]
+  private val _files = new scala.collection.mutable.HashSet[VirtualFile]
+  private val _folders = new scala.collection.mutable.HashSet[InMemoryFolder]
 
   @throws[VirtualIOException]
-  def getFolders: Set[VirtualFolder] = {
+  def folders: Set[VirtualFolder] = {
     try {
-      getUsersManager.checkExecuteAccess(this)
+      usersManager.checkExecuteAccess(this)
     } catch {
       case e: VirtualSecurityException =>
         throw new VirtualIOException(e.getMessage, e)
     }
-    folders.toSet
+    _folders.toSet
   }
 
   @throws[VirtualIOException]
-  def getFiles: Set[VirtualFile] = {
+  def files: Set[VirtualFile] = {
     try {
-      getUsersManager.checkExecuteAccess(this)
+      usersManager.checkExecuteAccess(this)
     }
     catch {
       case e: VirtualSecurityException =>
         throw new VirtualIOException(e.getMessage, e)
     }
-    files.toSet
+    _files.toSet
   }
 
   @throws[VirtualIOException]
   def mkdir(name: String): VirtualFolder = {
-    if (getFolders.exists(folder => folder.getName == name) || getFiles.exists(file => file.getName == name)) {
+    if (folders.exists(folder => folder.name == name) || files.exists(file => file.name == name)) {
       throw new VirtualIOException("mkdir: cannot create directory ‘" + name + "’: File exists")
     }
-    val folder: InMemoryFolder = new InMemoryFolder(getUsersManager, this, name)
-    folders.add(folder)
+    val folder: InMemoryFolder = new InMemoryFolder(usersManager, this, name)
+    _folders.add(folder)
     folder
   }
 
@@ -53,9 +53,9 @@ with VirtualFolder {
       case e: VirtualSecurityException =>
         throw new VirtualIOException("deleteFile: " + e.getMessage, e)
     }
-    val file = files.find(_.getName == name)
+    val file = files.find(_.name == name)
     if (file.isDefined)
-      files.remove(file.get)
+      _files.remove(file.get)
     else
       throw new VirtualIOException("No such file")
   }
@@ -68,9 +68,9 @@ with VirtualFolder {
       case e: VirtualSecurityException =>
         throw new VirtualIOException("deleteFolder: " + e.getMessage, e)
     }
-    val folder = folders.find(_.getName == name)
+    val folder = _folders.find(_.name == name)
     if (folder.isDefined)
-      folders.remove(folder.get)
+      _folders.remove(folder.get)
     else
       throw new VirtualIOException("No such file")
   }
@@ -78,20 +78,20 @@ with VirtualFolder {
   @throws[VirtualIOException]
   def touch(name: String): VirtualFile = {
     checkCreate(name)
-    val file: InMemoryFile = new InMemoryFile(getUsersManager, this, name)
-    files.add(file)
+    val file: InMemoryFile = new InMemoryFile(usersManager, this, name)
+    _files.add(file)
     file
   }
 
   @throws[VirtualIOException]
   def createExecutableFile(name: String, run_ : VirtualFileRun): VirtualFile = {
     checkCreate(name)
-    val file: InMemoryFile = new InMemoryFile(getUsersManager, this, name) {
+    val file: InMemoryFile = new InMemoryFile(usersManager, this, name) {
       @throws[VirtualIOException]
-      override def getContent: AnyRef = "[byte]"
+      override def content = "[byte]"
 
       @throws[VirtualIOException]
-      override def setContent(content: AnyRef) {
+      override def content_=(content: AnyRef) {
         throw new VirtualIOException("access denied")
       }
 
@@ -101,47 +101,45 @@ with VirtualFolder {
       }
 
       override
-      def getPermissions: VirtualPermissions = VirtualPermissions.EXEC_PERMISSIONS
+      val permissions: VirtualPermissions = VirtualPermissions.EXEC_PERMISSIONS
 
       override
-      def isExecutable: Boolean = true
+      val executable = true
 
       @throws[VirtualIOException]
-      override def setExecutable(b: Boolean) {
+      override def executable_=(b: Boolean) {
         throw new VirtualIOException("access denied")
       }
     }
-    files += file
+    _files += file
     file
   }
 
   @throws[VirtualIOException]
-  def createDynamicFile(name: String, content: () => AnyRef): VirtualFile = {
+  def createDynamicFile(name: String, contentSupplier: () => AnyRef): VirtualFile = {
     checkCreate(name)
-    val file: InMemoryFile = new InMemoryFile(getUsersManager, this, name) {
+    val file: InMemoryFile = new InMemoryFile(usersManager, this, name) {
 
       @throws[VirtualIOException]
-      override def getContent: AnyRef = content.apply()
+      override def content = contentSupplier.apply()
 
       @throws[VirtualIOException]
-      override def setContent(content: AnyRef) {
+      override def content_=(content: AnyRef) {
         throw new VirtualIOException("access denied")
       }
 
       override
-      def getPermissions: VirtualPermissions = {
-        VirtualPermissions.READ_PERMISSIONS
-      }
+      val permissions = VirtualPermissions.READ_PERMISSIONS
 
       override
-      def isExecutable: Boolean = false
+      val executable = false
 
       @throws[VirtualIOException]
-      override def setExecutable(b: Boolean) {
+      override def executable_=(b: Boolean) {
         throw new VirtualIOException("access denied")
       }
     }
-    files.add(file)
+    _files.add(file)
     file
   }
 
@@ -154,7 +152,7 @@ with VirtualFolder {
       case e: VirtualSecurityException =>
         throw new VirtualIOException(e.getMessage, e)
     }
-    if (getFolders.exists(folder => folder.getName == name) || getFiles.exists(file => file.getName == name)) {
+    if (folders.exists(folder => folder.name == name) || files.exists(file => file.name == name)) {
       throw new VirtualIOException("touch: cannot create file ‘" + name + "’: File exists")
     }
   }

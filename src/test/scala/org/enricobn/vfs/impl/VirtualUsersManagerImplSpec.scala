@@ -25,14 +25,14 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
     "UserManager" should "start as root" in {
       val f = fixture
 
-      assert(VirtualUsersManager.ROOT == f.usersManager.getCurrentUser)
+      assert(VirtualUsersManager.ROOT == f.usersManager.currentUser)
     }
 
     "Login with a valid user" should "be fine" in {
       val f = fixture
 
       f.usersManager.logUser("guest", f.guestPassword)
-      assert("guest" == f.usersManager.getCurrentUser)
+      assert("guest" == f.usersManager.currentUser)
     }
 
    "Login as user then root" should "be fine" in {
@@ -40,7 +40,7 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
 
       f.usersManager.logUser("guest", f.guestPassword)
       f.usersManager.logRoot(f.rootPassword)
-      assert(VirtualUsersManager.ROOT == f.usersManager.getCurrentUser)
+      assert(VirtualUsersManager.ROOT == f.usersManager.currentUser)
     }
 
   "Login with invalid password" should "throws an exception" in {
@@ -178,7 +178,7 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
     val node = createNode("guest")
     val permission = stub[VirtualPermission]
 
-    (node.getPermissions.owner _).when().returns(permission)
+    (node.permissions.owner _).when().returns(permission)
     (permission.read _).when().returns(true)
 
     f.usersManager.checkReadAccess(node)
@@ -192,7 +192,7 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
     val node = createNode("john")
     val permission = stub[VirtualPermission]
 
-    (node.getPermissions.others _).when().returns(permission)
+    (node.permissions.others _).when().returns(permission)
     (permission.read _).when().returns(true)
 
     f.usersManager.checkReadAccess(node)
@@ -206,7 +206,7 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
     val node = createNode("guest")
     val permission = stub[VirtualPermission]
 
-    (node.getPermissions.owner _).when().returns(permission)
+    (node.permissions.owner _).when().returns(permission)
     (permission.read _).when().returns(false)
 
     val caught = intercept[VirtualSecurityException] {
@@ -223,7 +223,7 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
     val node = createNode("john")
     val permission = stub[VirtualPermission]
 
-    (node.getPermissions.others _).when().returns(permission)
+    (node.permissions.others _).when().returns(permission)
     (permission.read _).when().returns(false)
 
     val caught = intercept[VirtualSecurityException] {
@@ -234,9 +234,9 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
 
   private def createNode(owner: String): VirtualNode = {
     val node: VirtualNode = stub[VirtualNode]
-    (node.getOwner _).when().returns(owner)
+    (node.owner _).when().returns(owner)
     val permissions: VirtualPermissions = stub[VirtualPermissions]
-    (node.getPermissions _).when().returns(permissions)
+    (node.permissions _).when().returns(permissions)
     node
   }
 

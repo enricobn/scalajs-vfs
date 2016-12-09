@@ -5,24 +5,16 @@ import org.enricobn.vfs._
 /**
   * Created by enrico on 12/2/16.
   */
-class InMemoryNode(usersManager: VirtualUsersManager, parent: VirtualFolder, private val name: String)
+class InMemoryNode(val usersManager: VirtualUsersManager, val parent: VirtualFolder, val name: String)
 extends VirtualNode {
-  private val owner: String = usersManager.getCurrentUser
-  private val permissions: InMemoryPermissions = new InMemoryPermissions
-  private var executable: Boolean = false
+  val owner: String = usersManager.currentUser
+  val permissions: VirtualPermissions = new InMemoryPermissions
+  var _executable = false
 
-  def getName: String = name
-
-  def getParent: VirtualFolder = parent
-
-  def getOwner: String = owner
-
-  def getPermissions: VirtualPermissions = permissions
-
-  def isExecutable: Boolean = executable
+  val executable = _executable
 
   @throws[VirtualIOException]
-  def setExecutable(executable: Boolean) {
+  def executable_=(executable: Boolean) {
     try {
       usersManager.checkWriteAccess(this)
     }
@@ -30,7 +22,7 @@ extends VirtualNode {
       case e: VirtualSecurityException =>
         throw new VirtualIOException(e.getMessage, e)
     }
-    this.executable = executable
+    this._executable = executable
   }
 
   @throws[VirtualSecurityException]
@@ -38,6 +30,6 @@ extends VirtualNode {
     usersManager.checkWriteAccess(node)
   }
 
-  private[inmemory] def getUsersManager: VirtualUsersManager = usersManager
+//  private[inmemory] def getUsersManager: VirtualUsersManager = usersManager
 
 }

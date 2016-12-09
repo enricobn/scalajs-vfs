@@ -4,26 +4,26 @@ package org.enricobn.vfs
   * Created by enrico on 12/2/16.
   */
 trait VirtualNode {
-  def getName: String
+  def name: String
 
-  def getParent: VirtualFolder
+  def parent: VirtualFolder
 
-  def getOwner: String
+  def owner: String
 
-  def getPermissions: VirtualPermissions
+  def permissions: VirtualPermissions
 
-  def isExecutable: Boolean
+  def executable: Boolean
 
   @throws[VirtualIOException]
-  def setExecutable(b: Boolean)
+  def executable_=(executable: Boolean) : Unit
 
-  def getPath: String = {
-    if (getParent != null) {
-      if (getParent.getParent != null) {
-        return getParent.getPath + "/" + getName
+  def path: String = {
+    if (parent != null) {
+      if (parent.parent != null) {
+        return parent.path + "/" + name
       }
       else {
-        return "/" + getName
+        return "/" + name
       }
     }
     "/"
@@ -34,12 +34,12 @@ trait VirtualNode {
   override def equals(other: Any): Boolean = other match {
     case that: VirtualNode =>
       (that canEqual this) &&
-        getPath == that.getPath
+        path == that.path
     case _ => false
   }
 
   override def hashCode(): Int = {
-    val state = Seq(getPath)
+    val state = Seq(path)
     state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
   }
 }

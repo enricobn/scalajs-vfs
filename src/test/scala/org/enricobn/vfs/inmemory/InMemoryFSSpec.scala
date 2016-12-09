@@ -14,14 +14,14 @@ class InMemoryFSSpec extends FlatSpec with MockFactory with Matchers {
       val usersManager = stub[VirtualUsersManager]
       val fs = new InMemoryFS(usersManager)
     }
-    (f.usersManager.getCurrentUser _).when().returns("foo")
+    (f.usersManager.currentUser _).when().returns("foo")
     f
   }
 
   "Root name" should "be slash" in {
     val f = fixture
 
-    assert(f.fs.root.getName == "/")
+    assert(f.fs.root.name == "/")
   }
 
   "Mkdir" should "add a folder" in {
@@ -31,9 +31,9 @@ class InMemoryFSSpec extends FlatSpec with MockFactory with Matchers {
 
     val pippo = f.fs.root.mkdir(folderName)
 
-    assert(pippo.getName == folderName)
-    assert(f.fs.root.getFolders.size == 1)
-    assert(f.fs.root.getFolders.head.getName == folderName)
+    assert(pippo.name == folderName)
+    assert(f.fs.root.folders.size == 1)
+    assert(f.fs.root.folders.head.name == folderName)
   }
 
   "Mkdir" should "add a folder with current user as owner" in {
@@ -43,7 +43,7 @@ class InMemoryFSSpec extends FlatSpec with MockFactory with Matchers {
 
     val pippo = f.fs.root.mkdir(folderName)
 
-    assert(pippo.getOwner == "foo")
+    assert(pippo.owner == "foo")
   }
 
 }

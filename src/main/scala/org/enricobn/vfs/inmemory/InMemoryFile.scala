@@ -7,13 +7,13 @@ import org.enricobn.vfs.{VirtualFile, VirtualIOException, VirtualSecurityExcepti
   */
 class InMemoryFile(usersManager: VirtualUsersManager, parent: InMemoryFolder, name: String)
 extends InMemoryNode(usersManager, parent, name) with VirtualFile {
-  private var content: AnyRef = ""
+  private var _content: AnyRef = ""
 
   @throws[VirtualIOException]
-  def getContent: AnyRef = content
+  def content = _content
 
   @throws[VirtualIOException]
-  def setContent (content: AnyRef) {
+  def content_=(content: AnyRef) {
     try {
       checkWriteAccess (this)
     } catch {

@@ -1,14 +1,17 @@
 package org.enricobn.vfs
 
+import scala.scalajs.js.annotation.JSExportAll
+
 /**
   * Created by enrico on 12/2/16.
   */
+@JSExportAll
 trait VirtualFolder extends VirtualNode {
   @throws[VirtualIOException]
-  def getFolders: Set[VirtualFolder]
+  def folders: Set[VirtualFolder]
 
   @throws[VirtualIOException]
-  def getFiles: Set[VirtualFile]
+  def files: Set[VirtualFile]
 
   @throws[VirtualIOException]
   def mkdir(name: String): VirtualFolder
@@ -54,7 +57,7 @@ trait VirtualFolder extends VirtualNode {
 
   @throws[VirtualIOException]
   def findFile(fileName: String, predicate: Function[VirtualFile, Boolean]): Option[VirtualFile] = {
-    getFiles.find(file => file.getName == fileName && predicate.apply(file))
+    files.find(file => file.name == fileName && predicate.apply(file))
   }
 
   @throws[VirtualIOException]
@@ -69,13 +72,13 @@ trait VirtualFolder extends VirtualNode {
 
   @throws[VirtualIOException]
   def findFolder(name: String, predicate: Function[VirtualFolder, Boolean]): Option[VirtualFolder] = {
-    getFolders.find(folder => folder.getName == name && predicate.apply(folder))
+    folders.find(folder => folder.name == name && predicate.apply(folder))
   }
 
   @throws[VirtualIOException]
   def resolveFolder(path: String): VirtualFolder = {
     if (path.startsWith("/")) {
-      return getRoot.resolveFolder(path.substring(1))
+      return root.resolveFolder(path.substring(1))
     }
     else if (path.isEmpty) {
       return this
@@ -84,8 +87,8 @@ trait VirtualFolder extends VirtualNode {
     var result: VirtualFolder = this
     for (element <- elements) {
       if (element == "..") {
-        if (result.getParent != null) {
-          result = result.getParent
+        if (result.parent != null) {
+          result = result.parent
         }
       } else if (element != ".") {
         result = result.findFolderOrThrow(element, folder => true)
@@ -94,10 +97,10 @@ trait VirtualFolder extends VirtualNode {
     result
   }
 
-  def getRoot: VirtualFolder = {
-    if (getParent == null) {
+  def root: VirtualFolder = {
+    if (parent == null) {
       return this
     }
-    getParent.getRoot
+    parent.root
   }
 }

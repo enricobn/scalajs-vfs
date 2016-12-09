@@ -2,16 +2,20 @@ package org.enricobn.vfs.impl
 
 import org.enricobn.vfs.{VirtualNode, VirtualPermission, VirtualSecurityException, VirtualUsersManager}
 
+import scala.scalajs.js.annotation.{JSExport, JSExportAll}
+
 /**
   * Created by enrico on 12/2/16.
   */
+@JSExport(name = "VirtualUsersManagerImpl")
+@JSExportAll
 class VirtualUsersManagerImpl(rootPassword: String) extends VirtualUsersManager {
   private val users = new scala.collection.mutable.HashMap[String, String]
-  private var currentUser: String = VirtualUsersManager.ROOT
+  private var _currentUser: String = VirtualUsersManager.ROOT
 
   users(VirtualUsersManager.ROOT) = rootPassword
 
-  def getCurrentUser: String = currentUser
+  def currentUser: String = _currentUser
 
   @throws[VirtualSecurityException]
   def checkWriteAccess(node: VirtualNode) {
@@ -33,13 +37,13 @@ class VirtualUsersManagerImpl(rootPassword: String) extends VirtualUsersManager 
     if (VirtualUsersManager.ROOT == currentUser) {
       return
     }
-    if (node.getOwner == currentUser) {
-      if (!permission.apply(node.getPermissions.owner)) {
+    if (node.owner == currentUser) {
+      if (!permission.apply(node.permissions.owner)) {
         throw new VirtualSecurityException("Permission denied.")
       }
     }
     else {
-      if (!permission.apply(node.getPermissions.others)) {
+      if (!permission.apply(node.permissions.others)) {
         throw new VirtualSecurityException("Permission denied.")
       }
     }
@@ -53,7 +57,7 @@ class VirtualUsersManagerImpl(rootPassword: String) extends VirtualUsersManager 
     else if (!users.get(user).contains(password)) {
       throw new VirtualSecurityException("Invalid password.")
     }
-    currentUser = user
+    _currentUser = user
   }
 
   @throws[VirtualSecurityException]
@@ -61,7 +65,7 @@ class VirtualUsersManagerImpl(rootPassword: String) extends VirtualUsersManager 
     if (rootPassword != password) {
       throw new VirtualSecurityException("Invalid password.")
     }
-    currentUser = VirtualUsersManager.ROOT
+    _currentUser = VirtualUsersManager.ROOT
   }
 
   @throws[VirtualSecurityException]

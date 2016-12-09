@@ -23,7 +23,7 @@ trait VirtualUsersManager {
   @throws[VirtualSecurityException]
   def addUser(user: String, password: String)
 
-  def getCurrentUser: String
+  def currentUser: String
 
   @throws[VirtualSecurityException]
   def checkWriteAccess(node: VirtualNode)

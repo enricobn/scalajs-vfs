@@ -5,13 +5,13 @@ package org.enricobn.vfs
   */
 trait VirtualFile extends VirtualNode {
   @throws[VirtualIOException]
-  def getContent: AnyRef
+  def content: AnyRef
 
   @throws[VirtualIOException]
-  def setContent(content: AnyRef)
+  def content_=(content: AnyRef)
 
   @throws[VirtualIOException]
   def run(args: String*) {
-    throw new VirtualIOException(getName + ": unsupported executable format")
+    throw new VirtualIOException(name + ": unsupported executable format")
   }
 }

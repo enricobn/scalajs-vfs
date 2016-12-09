@@ -5,6 +5,6 @@ package org.enricobn.vfs
   */
 trait VirtualFS {
 
-  def getRoot: VirtualFolder
+  def root: VirtualFolder
 
 }
