@@ -5,7 +5,7 @@ import org.enricobn.vfs.{VirtualFile, VirtualIOException, VirtualSecurityExcepti
 /**
   * Created by enrico on 12/2/16.
   */
-class InMemoryFile(usersManager: VirtualUsersManager, parent: InMemoryFolder, name: String)
+class InMemoryFile private[inmemory] (usersManager: VirtualUsersManager, parent: InMemoryFolder, name: String)
 extends InMemoryNode(usersManager, parent, name) with VirtualFile {
   private var _content: AnyRef = ""
 
@@ -15,12 +15,12 @@ extends InMemoryNode(usersManager, parent, name) with VirtualFile {
   @throws[VirtualIOException]
   def content_=(content: AnyRef) {
     try {
-      checkWriteAccess (this)
+      usersManager.checkWriteAccess(this)
     } catch {
       case e: VirtualSecurityException =>
         throw new VirtualIOException (e.getMessage, e)
     }
-    this.content = content
+    this._content = content
   }
 }
 

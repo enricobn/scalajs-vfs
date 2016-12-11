@@ -1,8 +1,11 @@
 package org.enricobn.vfs
 
+import scala.scalajs.js.annotation.JSExportAll
+
 /**
   * Created by enrico on 12/2/16.
   */
+@JSExportAll
 trait VirtualFile extends VirtualNode {
   @throws[VirtualIOException]
   def content: AnyRef

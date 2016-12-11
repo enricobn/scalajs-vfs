@@ -5,7 +5,7 @@ import org.enricobn.vfs._
 /**
   * Created by enrico on 12/2/16.
   */
-class InMemoryFolder(usersManager: VirtualUsersManager, parent: VirtualFolder, name: String)
+class InMemoryFolder private[inmemory] (usersManager: VirtualUsersManager, parent: VirtualFolder, name: String)
 extends InMemoryNode(usersManager, parent, name)
 with VirtualFolder {
   private val _files = new scala.collection.mutable.HashSet[VirtualFile]
@@ -47,7 +47,7 @@ with VirtualFolder {
   @throws[VirtualIOException]
   def deleteFile(name: String) {
     try {
-      checkWriteAccess(this)
+      usersManager.checkWriteAccess(this)
     }
     catch {
       case e: VirtualSecurityException =>
@@ -62,7 +62,7 @@ with VirtualFolder {
 
   def deleteFolder(name: String) {
     try {
-      checkWriteAccess(this)
+      usersManager.checkWriteAccess(this)
     }
     catch {
       case e: VirtualSecurityException =>
@@ -146,7 +146,7 @@ with VirtualFolder {
   @throws[VirtualIOException]
   private def checkCreate(name: String) {
     try {
-      checkWriteAccess(this)
+      usersManager.checkWriteAccess(this)
     }
     catch {
       case e: VirtualSecurityException =>
