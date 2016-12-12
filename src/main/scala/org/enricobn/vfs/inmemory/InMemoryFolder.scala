@@ -90,20 +90,13 @@ with VirtualFolder {
     checkCreate(name)
     val file: InMemoryFile = new InMemoryFile(usersManager, this, name) {
       @throws[VirtualIOException]
-      override def content = "[byte]"
-
-      @throws[VirtualIOException]
-      override def content_=(content: AnyRef) {
-        throw new VirtualIOException("access denied")
-      }
-
-      @throws[VirtualIOException]
-      override def run(args: String*) {
+      override def internalRun(args: String*) {
         run_.run(args: _*)
       }
     }
 
     file.setExecutable()
+    file.content = "[byte]"
 
     _files += file
     file
@@ -112,16 +105,10 @@ with VirtualFolder {
   @throws[VirtualIOException]
   def createDynamicFile(name: String, contentSupplier: () => AnyRef): VirtualFile = {
     checkCreate(name)
-    val file: InMemoryFile = new InMemoryFile(usersManager, this, name) {
+    val file: InMemoryFile = new InMemoryFile(usersManager, this, name)
 
-      @throws[VirtualIOException]
-      override def content = contentSupplier.apply()
+    file.content = contentSupplier.apply()
 
-      @throws[VirtualIOException]
-      override def content_=(content: AnyRef) {
-        throw new VirtualIOException("access denied")
-      }
-    }
     _files.add(file)
     file
   }

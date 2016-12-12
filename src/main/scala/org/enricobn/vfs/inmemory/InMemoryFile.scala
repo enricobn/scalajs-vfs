@@ -10,10 +10,10 @@ extends InMemoryNode(usersManager, parent, name) with VirtualFile {
   private var _content: AnyRef = ""
 
   @throws[VirtualIOException]
-  def content = _content
+  final def content = _content
 
   @throws[VirtualIOException]
-  def content_=(content: AnyRef) {
+  final def content_=(content: AnyRef) {
     try {
       usersManager.checkWriteAccess(this)
     } catch {
@@ -22,5 +22,21 @@ extends InMemoryNode(usersManager, parent, name) with VirtualFile {
     }
     this._content = content
   }
-}
 
+  @throws[VirtualIOException]
+  final override def run(args: String*) {
+    try {
+      usersManager.checkExecuteAccess(this)
+    } catch {
+      case e: VirtualSecurityException =>
+        throw new VirtualIOException (e.getMessage, e)
+    }
+    internalRun(args: _*)
+  }
+
+  @throws[VirtualIOException]
+  protected def internalRun(args: String*) {
+    throw new VirtualIOException(name + ": unsupported executable format")
+  }
+
+}
