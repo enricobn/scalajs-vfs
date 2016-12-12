@@ -23,7 +23,6 @@ object VirtualPermission {
 
 trait VirtualPermission {
 
-
   def read: Boolean
 
   def write: Boolean

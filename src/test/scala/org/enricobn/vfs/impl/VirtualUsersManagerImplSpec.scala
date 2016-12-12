@@ -12,28 +12,28 @@ import org.scalatest.{FlatSpec, Matchers}
 class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matchers {
 
   def fixture = {
-      val f = new {
-        val rootPassword: String = UUID.randomUUID().toString
-        val guestPassword: String = UUID.randomUUID().toString
-        val usersManager: VirtualUsersManager = new VirtualUsersManagerImpl(rootPassword)
-      }
-
-      f.usersManager.addUser("guest", f.guestPassword)
-      f
+    val f = new {
+      val rootPassword: String = UUID.randomUUID().toString
+      val guestPassword: String = UUID.randomUUID().toString
+      val usersManager: VirtualUsersManager = new VirtualUsersManagerImpl(rootPassword)
     }
 
-    "UserManager" should "start as root" in {
-      val f = fixture
+    f.usersManager.addUser("guest", f.guestPassword)
+    f
+  }
 
-      assert(VirtualUsersManager.ROOT == f.usersManager.currentUser)
-    }
+  "UserManager" should "start as root" in {
+    val f = fixture
 
-    "Login with a valid user" should "be fine" in {
-      val f = fixture
+    assert(VirtualUsersManager.ROOT == f.usersManager.currentUser)
+  }
 
-      f.usersManager.logUser("guest", f.guestPassword)
-      assert("guest" == f.usersManager.currentUser)
-    }
+  "Login with a valid user" should "be fine" in {
+    val f = fixture
+
+    f.usersManager.logUser("guest", f.guestPassword)
+    assert("guest" == f.usersManager.currentUser)
+  }
 
    "Login as user then root" should "be fine" in {
       val f = fixture
@@ -175,7 +175,7 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
 
     f.usersManager.logUser("guest", f.guestPassword)
 
-    val node = createNode("guest")
+    val node = createNode("guest", "text.txt")
     val permission = stub[VirtualPermission]
 
     (node.permissions.owner _).when().returns(permission)
@@ -189,7 +189,7 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
 
     f.usersManager.logUser("guest", f.guestPassword)
 
-    val node = createNode("john")
+    val node = createNode("john", "text.txt")
     val permission = stub[VirtualPermission]
 
     (node.permissions.others _).when().returns(permission)
@@ -203,7 +203,7 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
 
     f.usersManager.logUser("guest", f.guestPassword)
 
-    val node = createNode("guest")
+    val node = createNode("guest", "text.txt")
     val permission = stub[VirtualPermission]
 
     (node.permissions.owner _).when().returns(permission)
@@ -212,7 +212,7 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
     val caught = intercept[VirtualSecurityException] {
       f.usersManager.checkReadAccess(node)
     }
-    assert(caught.getMessage == "Permission denied.")
+    assert(caught.getMessage == "text.txt: permission denied.")
   }
 
   "Read access for others" should "not be granted" in {
@@ -220,7 +220,7 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
 
     f.usersManager.logUser("guest", f.guestPassword)
 
-    val node = createNode("john")
+    val node = createNode("john", "text.txt")
     val permission = stub[VirtualPermission]
 
     (node.permissions.others _).when().returns(permission)
@@ -229,12 +229,13 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
     val caught = intercept[VirtualSecurityException] {
       f.usersManager.checkReadAccess(node)
     }
-    assert(caught.getMessage == "Permission denied.")
+    assert(caught.getMessage == "text.txt: permission denied.")
   }
 
-  private def createNode(owner: String): VirtualNode = {
+  private def createNode(owner: String, name: String): VirtualNode = {
     val node: VirtualNode = stub[VirtualNode]
     (node.owner _).when().returns(owner)
+    (node.name _).when().returns(name)
     val permissions: VirtualPermissions = stub[VirtualPermissions]
     (node.permissions _).when().returns(permissions)
     node

@@ -1,8 +1,11 @@
 package org.enricobn.vfs
 
+import scala.scalajs.js.annotation.JSExportAll
+
 /**
   * Created by enrico on 12/2/16.
   */
+@JSExportAll
 trait VirtualNode {
   def name: String
 
@@ -12,10 +15,16 @@ trait VirtualNode {
 
   def permissions: VirtualPermissions
 
-  def executable: Boolean
+  def setExecutable() : Unit
 
   @throws[VirtualIOException]
-  def executable_=(executable: Boolean) : Unit
+  def setPermissions(permissions: VirtualPermissions) : Unit
+
+  @throws[VirtualIOException]
+  def chmod(value: Int) : Unit
+
+//  @throws[VirtualIOException]
+//  def executable_=(executable: Boolean) : Unit
 
   def path: String = {
     if (parent != null) {
@@ -30,6 +39,8 @@ trait VirtualNode {
   }
 
   def canEqual(other: Any): Boolean = other.isInstanceOf[VirtualNode]
+
+  def getCurrentUserPermission : VirtualPermission
 
   override def equals(other: Any): Boolean = other match {
     case that: VirtualNode =>

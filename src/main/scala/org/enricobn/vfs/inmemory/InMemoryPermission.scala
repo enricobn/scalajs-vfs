@@ -5,26 +5,29 @@ import org.enricobn.vfs.VirtualPermission
 /**
   * Created by enrico on 12/2/16.
   */
-class InMemoryPermission extends VirtualPermission {
-  private var read_ : Boolean = true
-  private var write_ : Boolean = true
-  private var execute_ : Boolean = true
+final class InMemoryPermission extends VirtualPermission {
+  private var _read : Boolean = true
+  private var _write : Boolean = true
+  private var _execute : Boolean = false
 
-  def read: Boolean = read_
+  def read: Boolean = _read
 
-  def write: Boolean = write_
+  def write: Boolean = _write
 
-  def execute: Boolean = execute_
+  def execute: Boolean = _execute
 
-  private[inmemory] def setRead(read_ : Boolean) {
-    this.read_ = read_
+  // TODO check permissions?
+  private[inmemory] def read_=(_read : Boolean) {
+    this._read = _read
   }
 
-  private[inmemory] def setWrite(write_ : Boolean) {
-    this.write_ = write_
+  // TODO check permissions?
+  private[inmemory] def write_=(_write : Boolean) {
+    this._write = _write
   }
 
-  private[inmemory] def setExecute(execute_ : Boolean) {
-    this.execute_ = execute_
+  // TODO check permissions?
+  private[inmemory] def execute_=(_execute : Boolean) {
+    this._execute = _execute
   }
 }

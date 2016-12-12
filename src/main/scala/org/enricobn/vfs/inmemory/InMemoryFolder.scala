@@ -11,6 +11,8 @@ with VirtualFolder {
   private val _files = new scala.collection.mutable.HashSet[VirtualFile]
   private val _folders = new scala.collection.mutable.HashSet[InMemoryFolder]
 
+  setExecutable()
+
   @throws[VirtualIOException]
   def folders: Set[VirtualFolder] = {
     try {
@@ -99,18 +101,10 @@ with VirtualFolder {
       override def run(args: String*) {
         run_.run(args: _*)
       }
-
-      override
-      val permissions: VirtualPermissions = VirtualPermissions.EXEC_PERMISSIONS
-
-      override
-      val executable = true
-
-      @throws[VirtualIOException]
-      override def executable_=(b: Boolean) {
-        throw new VirtualIOException("access denied")
-      }
     }
+
+    file.setExecutable()
+
     _files += file
     file
   }
@@ -125,17 +119,6 @@ with VirtualFolder {
 
       @throws[VirtualIOException]
       override def content_=(content: AnyRef) {
-        throw new VirtualIOException("access denied")
-      }
-
-      override
-      val permissions = VirtualPermissions.READ_PERMISSIONS
-
-      override
-      val executable = false
-
-      @throws[VirtualIOException]
-      override def executable_=(b: Boolean) {
         throw new VirtualIOException("access denied")
       }
     }

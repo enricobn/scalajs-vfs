@@ -9,7 +9,7 @@ import scala.scalajs.js.annotation.{JSExport, JSExportAll}
   */
 @JSExport(name = "VirtualUsersManagerImpl")
 @JSExportAll
-class VirtualUsersManagerImpl(rootPassword: String) extends VirtualUsersManager {
+final class VirtualUsersManagerImpl(rootPassword: String) extends VirtualUsersManager {
   private val users = new scala.collection.mutable.HashMap[String, String]
   private var _currentUser: String = VirtualUsersManager.ROOT
 
@@ -39,12 +39,12 @@ class VirtualUsersManagerImpl(rootPassword: String) extends VirtualUsersManager 
     }
     if (node.owner == currentUser) {
       if (!permission.apply(node.permissions.owner)) {
-        throw new VirtualSecurityException("Permission denied.")
+        throw new VirtualSecurityException(node.name + ": permission denied.")
       }
-    }
-    else {
+    //TODO group
+    } else {
       if (!permission.apply(node.permissions.others)) {
-        throw new VirtualSecurityException("Permission denied.")
+        throw new VirtualSecurityException(node.name + ": permission denied.")
       }
     }
   }
