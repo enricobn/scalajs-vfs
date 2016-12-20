@@ -22,8 +22,6 @@ trait VirtualFolder extends VirtualNode {
 
   def createExecutableFile(name: String, run: VirtualFileRun): Either[IOError, VirtualFile]
 
-  def createDynamicFile(name: String, content: () => AnyRef): Either[IOError, VirtualFile]
-
   def rename(name: String) : Either[IOError, Unit]
 
   def findFile(fileName: String): Either[IOError, Option[VirtualFile]] = {

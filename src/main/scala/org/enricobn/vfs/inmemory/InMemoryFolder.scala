@@ -138,13 +138,13 @@ with VirtualFolder {
     }
   }
 
-  def createExecutableFile(name: String, run_ : VirtualFileRun) = {
+  def createExecutableFile(name: String, _run : VirtualFileRun) = {
     checkCreate(name) match {
       case Some(error) => error.message.ioErrorE
       case _ =>
         val file: InMemoryFile = new InMemoryFile(usersManager, this, name) {
           override def internalRun(args: String*) = {
-            run_.run(args: _*)
+            _run.run(args: _*)
           }
         }
 
@@ -153,21 +153,6 @@ with VirtualFolder {
           _ <- (file.content = "[byte]").right
         } yield {
           _files += file
-          file
-        }
-    }
-  }
-
-  def createDynamicFile(name: String, contentSupplier: () => AnyRef) = {
-    checkCreate(name) match {
-      case Some(error) => error.message.ioErrorE
-      case _ =>
-        val file: InMemoryFile = new InMemoryFile (usersManager, this, name)
-
-        for {
-          _ <- (file.content = contentSupplier.apply()).right
-        } yield {
-          _files.add(file)
           file
         }
     }
