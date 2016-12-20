@@ -34,7 +34,7 @@ class InMemoryFolderSpec extends FlatSpec with MockFactory with Matchers {
 
     assert(!f.folder.permissions.others.write)
 
-    f.folder.chmod(777).right.get.apply()
+    f.folder.chmod(777)
 
     assert(f.folder.permissions.others.write)
   }
@@ -42,7 +42,7 @@ class InMemoryFolderSpec extends FlatSpec with MockFactory with Matchers {
   "chmod" should "377" in {
     val f = fixture
 
-    f.folder.chmod(377).right.get.apply()
+    f.folder.chmod(377)
 
     assert(!f.folder.permissions.owner.read)
   }
@@ -50,7 +50,7 @@ class InMemoryFolderSpec extends FlatSpec with MockFactory with Matchers {
   "chmod" should "477" in {
     val f = fixture
 
-    f.folder.chmod(477).right.get.apply()
+    f.folder.chmod(477)
 
     assert(f.folder.permissions.owner.read)
     assert(!f.folder.permissions.owner.write)
@@ -60,7 +60,7 @@ class InMemoryFolderSpec extends FlatSpec with MockFactory with Matchers {
   "chmod" should "77" in {
     val f = fixture
 
-    f.folder.chmod(77).right.get.apply()
+    f.folder.chmod(77)
 
     assert(!f.folder.permissions.owner.read)
     assert(!f.folder.permissions.owner.write)

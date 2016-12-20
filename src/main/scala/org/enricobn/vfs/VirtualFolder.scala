@@ -2,8 +2,6 @@ package org.enricobn.vfs
 
 import scala.scalajs.js.annotation.JSExportAll
 
-import IOError._
-
 /**
   * Created by enrico on 12/2/16.
   */
@@ -16,9 +14,9 @@ trait VirtualFolder extends VirtualNode {
 
   def mkdir(name: String): Either[IOError, VirtualFolder]
 
-  def deleteFile(name: String) : IOEff[Boolean]
+  def deleteFile(name: String) : Either[IOError, Boolean]
 
-  def deleteFolder(name: String) : IOEff[Boolean]
+  def deleteFolder(name: String) : Either[IOError, Boolean]
 
   def touch(name: String): Either[IOError, VirtualFile]
 
@@ -26,7 +24,7 @@ trait VirtualFolder extends VirtualNode {
 
   def createDynamicFile(name: String, content: () => AnyRef): Either[IOError, VirtualFile]
 
-  def rename(name: String) : IOEff[Unit]
+  def rename(name: String) : Either[IOError, Unit]
 
   def findFile(fileName: String): Either[IOError, Option[VirtualFile]] = {
     findFile(fileName, _ => true)

@@ -14,7 +14,7 @@ with VirtualFolder {
 
   setExecutable() match {
     case Left(error) => throw new IllegalStateException(error.message)
-    case Right(eff) => eff.apply()
+    case _ =>
   }
 
   private def checkExecuteAccessE() : Either[IOError, Unit] =
@@ -85,7 +85,7 @@ with VirtualFolder {
       _ <- checkExecuteAccessE().right
       _ <- checkWriteAccessE().right
       effect <- _files.find(_.name == name)
-              .map(file => () => _files.remove(file))
+              .map(file => _files.remove(file))
               .toRight(IOError("No such file"))
               .right
     } yield effect
@@ -110,7 +110,7 @@ with VirtualFolder {
       _ <- checkExecuteAccessE().right
       _ <- checkWriteAccessE().right
       effect <- _folders.find(_.name == name)
-        .map(file => () => _folders.remove(file))
+        .map(file => _folders.remove(file))
         .toRight(IOError("No such file"))
         .right
     } yield effect
@@ -149,11 +149,9 @@ with VirtualFolder {
         }
 
         for {
-          setExecutable <- file.setExecutable().right
-          setContent <- (file.content = "[byte]").right
+          _ <- file.setExecutable().right
+          _ <- (file.content = "[byte]").right
         } yield {
-          setExecutable.apply()
-          setContent.apply()
           _files += file
           file
         }
@@ -167,9 +165,8 @@ with VirtualFolder {
         val file: InMemoryFile = new InMemoryFile (usersManager, this, name)
 
         for {
-          setContent <- (file.content = contentSupplier.apply()).right
+          _ <- (file.content = contentSupplier.apply()).right
         } yield {
-          setContent.apply()
           _files.add(file)
           file
         }

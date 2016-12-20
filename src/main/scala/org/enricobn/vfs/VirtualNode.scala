@@ -17,11 +17,11 @@ trait VirtualNode {
 
   def permissions: VirtualPermissions
 
-  def setExecutable() : IOEff[Unit]
+  def setExecutable() : Either[IOError, Unit]
 
-  def setPermissions(permissions: VirtualPermissions) : IOEff[Unit]
+  def setPermissions(permissions: VirtualPermissions) : Either[IOError, Unit]
 
-  def chmod(value: Int) : IOEff[Unit]
+  def chmod(value: Int) : Either[IOError, Unit]
 
 //  @throws[VirtualIOException]
 //  def executable_=(executable: Boolean) : Unit

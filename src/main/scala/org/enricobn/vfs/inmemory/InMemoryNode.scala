@@ -35,7 +35,7 @@ extends VirtualNode {
     if (!usersManager.checkWriteAccess(this)) {
       "Access denied.".ioErrorE
     } else {
-      Right(() => {
+      Right({
         _permissions.owner.execute = true
         _permissions.group.execute = true
         _permissions.others.execute = true
@@ -47,7 +47,7 @@ extends VirtualNode {
     if (!usersManager.checkWriteAccess(this)) {
       "Access denied.".ioErrorE
     } else {
-      Right(() => {
+      Right({
         _permissions.owner.read = permissions.owner.read
         _permissions.owner.write = permissions.owner.write
         _permissions.owner.execute = permissions.owner.execute
@@ -65,7 +65,7 @@ extends VirtualNode {
     if (!usersManager.checkWriteAccess(this)) {
       "Access denied.".ioErrorE
     } else {
-      Right(() => {
+      Right({
         val mask = BitSet.fromBitMask(Array(fromOctal(value)))
         _permissions.owner.read = mask(8)
         _permissions.owner.write = mask(7)

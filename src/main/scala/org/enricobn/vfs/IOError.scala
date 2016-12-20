@@ -7,8 +7,6 @@ case class IOError(message: String)
 
 object IOError {
 
-  type IOEff[A] = Either[IOError, () => A]
-
   implicit class SomeIOError(message: String) {
     def ioErrorO = Some(IOError(message))
   }

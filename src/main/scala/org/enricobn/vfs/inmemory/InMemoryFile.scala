@@ -1,7 +1,6 @@
 package org.enricobn.vfs.inmemory
 
-import org.enricobn.vfs.{VirtualFile, VirtualUsersManager}
-
+import org.enricobn.vfs.{IOError, VirtualFile, VirtualUsersManager}
 import org.enricobn.vfs.IOError._
 
 /**
@@ -17,7 +16,7 @@ extends InMemoryNode(usersManager, parent, name) with VirtualFile {
     if (!usersManager.checkWriteAccess(this)) {
       "Access denied.".ioErrorE
     }
-    Right(() => this._content = content)
+    Right(this._content = content)
   }
 
 
@@ -28,7 +27,7 @@ extends InMemoryNode(usersManager, parent, name) with VirtualFile {
     internalRun(args: _*)
   }
 
-  protected def internalRun(args: String*) : IOEff[Unit] =
+  protected def internalRun(args: String*) : Either[IOError, Unit] =
     (name + ": unsupported executable format").ioErrorE
 
 }

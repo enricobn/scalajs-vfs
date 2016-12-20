@@ -9,9 +9,9 @@ import org.enricobn.vfs.IOError._
 trait VirtualFile extends VirtualNode {
   def content: Either[IOError, AnyRef]
 
-  def content_=(content: AnyRef) : IOEff[Unit]
+  def content_=(content: AnyRef) : Either[IOError, Unit]
 
-  def run(args: String*) : IOEff[Unit] =
+  def run(args: String*) : Either[IOError, Unit] =
     (name + ": unsupported executable format").ioErrorE
 
 }
