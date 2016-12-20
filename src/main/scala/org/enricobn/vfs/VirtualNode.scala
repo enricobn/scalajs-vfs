@@ -2,6 +2,8 @@ package org.enricobn.vfs
 
 import scala.scalajs.js.annotation.JSExportAll
 
+import IOError._
+
 /**
   * Created by enrico on 12/2/16.
   */
@@ -15,13 +17,11 @@ trait VirtualNode {
 
   def permissions: VirtualPermissions
 
-  def setExecutable() : Unit
+  def setExecutable() : IOEff[Unit]
 
-  @throws[VirtualIOException]
-  def setPermissions(permissions: VirtualPermissions) : Unit
+  def setPermissions(permissions: VirtualPermissions) : IOEff[Unit]
 
-  @throws[VirtualIOException]
-  def chmod(value: Int) : Unit
+  def chmod(value: Int) : IOEff[Unit]
 
 //  @throws[VirtualIOException]
 //  def executable_=(executable: Boolean) : Unit

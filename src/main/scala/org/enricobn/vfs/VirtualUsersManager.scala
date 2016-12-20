@@ -8,23 +8,17 @@ object VirtualUsersManager {
 }
 
 trait VirtualUsersManager {
-  @throws[VirtualSecurityException]
-  def checkReadAccess(node: VirtualNode)
+  def checkReadAccess(node: VirtualNode) : Boolean
 
-  @throws[VirtualSecurityException]
-  def checkExecuteAccess(node: VirtualNode)
+  def checkExecuteAccess(node: VirtualNode) : Boolean
 
-  @throws[VirtualSecurityException]
-  def logUser(user: String, password: String)
+  def checkWriteAccess(node: VirtualNode) : Boolean
 
-  @throws[VirtualSecurityException]
-  def logRoot(password: String)
+  def logUser(user: String, password: String) : Option[IOError]
 
-  @throws[VirtualSecurityException]
-  def addUser(user: String, password: String)
+  def logRoot(password: String) : Option[IOError]
+
+  def addUser(user: String, password: String) : Option[IOError]
 
   def currentUser: String
-
-  @throws[VirtualSecurityException]
-  def checkWriteAccess(node: VirtualNode)
 }

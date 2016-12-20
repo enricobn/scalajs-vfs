@@ -1,6 +1,7 @@
 package org.enricobn.vfs.inmemory
 
 import org.enricobn.vfs._
+import IOError._
 
 /**
   * Created by enrico on 12/2/16.
@@ -11,124 +12,183 @@ with VirtualFolder {
   private val _files = new scala.collection.mutable.HashSet[VirtualFile]
   private val _folders = new scala.collection.mutable.HashSet[InMemoryFolder]
 
-  setExecutable()
-
-  @throws[VirtualIOException]
-  def folders: Set[VirtualFolder] = {
-    try {
-      usersManager.checkExecuteAccess(this)
-    } catch {
-      case e: VirtualSecurityException =>
-        throw new VirtualIOException(e.getMessage, e)
-    }
-    _folders.toSet
+  setExecutable() match {
+    case Left(error) => throw new IllegalStateException(error.message)
+    case Right(eff) => eff.apply()
   }
 
-  @throws[VirtualIOException]
-  def files: Set[VirtualFile] = {
-    try {
-      usersManager.checkExecuteAccess(this)
+  private def checkExecuteAccessE() : Either[IOError, Unit] =
+    if (!usersManager.checkExecuteAccess(this)) {
+      "Access denied.".ioErrorE
+    } else {
+      Right(())
     }
-    catch {
-      case e: VirtualSecurityException =>
-        throw new VirtualIOException(e.getMessage, e)
+
+  private def checkWriteAccessE() : Either[IOError, Unit] =
+    if (!usersManager.checkWriteAccess(this)) {
+      "Access denied.".ioErrorE
+    } else {
+      Right(())
     }
-    _files.toSet
+
+  def folders = {
+    for {
+      _ <- checkExecuteAccessE().right
+    } yield _folders.toSet
+//
+//    if (!usersManager.checkExecuteAccess(this)) {
+//      "Access denied.".ioErrorE
+//    } else {
+//      Right(_folders.toSet)
+//    }
   }
 
-  @throws[VirtualIOException]
-  def mkdir(name: String): VirtualFolder = {
-    if (folders.exists(folder => folder.name == name) || files.exists(file => file.name == name)) {
-      throw new VirtualIOException("mkdir: cannot create directory ‘" + name + "’: File exists")
-    }
-    val folder: InMemoryFolder = new InMemoryFolder(usersManager, this, name)
-    _folders.add(folder)
-    folder
+  def files = {
+    for {
+      _ <- checkExecuteAccessE().right
+    } yield _files.toSet
+//    if (!usersManager.checkExecuteAccess(this)) {
+//      "Access denied.".ioErrorE
+//    } else {
+//      Right(_files.toSet)
+//    }
   }
 
-  @throws[VirtualIOException]
-  def deleteFile(name: String) {
-    try {
-      usersManager.checkWriteAccess(this)
+  def mkdir(name: String) = {
+    for {
+      _ <- checkExecuteAccessE().right
+      _ <- checkWriteAccessE().right
+      folder <- if (_folders.exists(folder => folder.name == name) || _files.exists(file => file.name == name)) {
+                  ("mkdir: cannot create directory ‘" + name + "’: File exists").ioErrorE.right
+                } else {
+                  Right(new InMemoryFolder(usersManager, this, name)).right
+                }
+    } yield {
+      _folders.add(folder)
+      folder
     }
-    catch {
-      case e: VirtualSecurityException =>
-        throw new VirtualIOException("deleteFile: " + e.getMessage, e)
-    }
-    val file = files.find(_.name == name)
-    if (file.isDefined)
-      _files.remove(file.get)
-    else
-      throw new VirtualIOException("No such file")
+//    if (!usersManager.checkWriteAccess(this)) {
+//      "Access denied.".ioErrorE
+//    } else if (!usersManager.checkExecuteAccess(this)) {
+//      "Access denied.".ioErrorE
+//    } else if (_folders.exists(folder => folder.name == name) || _files.exists(file => file.name == name)) {
+//      ("mkdir: cannot create directory ‘" + name + "’: File exists").ioErrorE
+//    } else {
+//      val folder: InMemoryFolder = new InMemoryFolder(usersManager, this, name)
+//      _folders.add(folder)
+//      Right(folder)
+//    }
   }
 
-  def deleteFolder(name: String) {
-    try {
-      usersManager.checkWriteAccess(this)
-    }
-    catch {
-      case e: VirtualSecurityException =>
-        throw new VirtualIOException("deleteFolder: " + e.getMessage, e)
-    }
-    val folder = _folders.find(_.name == name)
-    if (folder.isDefined)
-      _folders.remove(folder.get)
-    else
-      throw new VirtualIOException("No such file")
+  def deleteFile(name: String) = {
+    for {
+      _ <- checkExecuteAccessE().right
+      _ <- checkWriteAccessE().right
+      effect <- _files.find(_.name == name)
+              .map(file => () => _files.remove(file))
+              .toRight(IOError("No such file"))
+              .right
+    } yield effect
+
+//    if (!usersManager.checkWriteAccess(this)) {
+//      "Access denied.".ioErrorE
+//    } else if (!usersManager.checkExecuteAccess(this)) {
+//      "Access denied.".ioErrorE
+//    } else {
+//      _files.find(_.name == name)
+//        .map(file => () => _files.remove(file))
+//        .toRight(IOError("No such file"))
+////      if (file.isDefined)
+////        Right(() => _files.remove(file.get))
+////      else
+////        "No such file".ioErrorE
+//    }
   }
 
-  @throws[VirtualIOException]
-  def touch(name: String): VirtualFile = {
-    checkCreate(name)
-    val file: InMemoryFile = new InMemoryFile(usersManager, this, name)
-    _files.add(file)
-    file
+  def deleteFolder(name: String) = {
+    for {
+      _ <- checkExecuteAccessE().right
+      _ <- checkWriteAccessE().right
+      effect <- _folders.find(_.name == name)
+        .map(file => () => _folders.remove(file))
+        .toRight(IOError("No such file"))
+        .right
+    } yield effect
+
+//    if (!usersManager.checkWriteAccess(this)) {
+//      "Access denied.".ioErrorE
+//    } else if (!usersManager.checkExecuteAccess(this)) {
+//      "Access denied.".ioErrorE
+//    } else {
+//      val folder = _folders.find(_.name == name)
+//      if (folder.isDefined)
+//        Right(() => _folders.remove(folder.get))
+//      else
+//        "No such file".ioErrorE
+//    }
   }
 
-  @throws[VirtualIOException]
-  def createExecutableFile(name: String, run_ : VirtualFileRun): VirtualFile = {
-    checkCreate(name)
-    val file: InMemoryFile = new InMemoryFile(usersManager, this, name) {
-      @throws[VirtualIOException]
-      override def internalRun(args: String*) {
-        run_.run(args: _*)
-      }
-    }
-
-    file.setExecutable()
-    file.content = "[byte]"
-
-    _files += file
-    file
-  }
-
-  @throws[VirtualIOException]
-  def createDynamicFile(name: String, contentSupplier: () => AnyRef): VirtualFile = {
-    checkCreate(name)
-    val file: InMemoryFile = new InMemoryFile(usersManager, this, name)
-
-    file.content = contentSupplier.apply()
-
-    _files.add(file)
-    file
-  }
-
-  @throws[VirtualIOException]
-  private def checkCreate(name: String) {
-    try {
-      usersManager.checkWriteAccess(this)
-    }
-    catch {
-      case e: VirtualSecurityException =>
-        throw new VirtualIOException(e.getMessage, e)
-    }
-    if (folders.exists(folder => folder.name == name) || files.exists(file => file.name == name)) {
-      throw new VirtualIOException("touch: cannot create file ‘" + name + "’: File exists")
+  def touch(name: String) = {
+    checkCreate(name) match {
+      case Some(error) => error.message.ioErrorE
+      case _ =>
+        val file: InMemoryFile = new InMemoryFile (usersManager, this, name)
+        _files.add (file)
+        Right(file)
     }
   }
 
-  @throws[VirtualIOException]
-  def rename(name: String) {
-    throw new UnsupportedOperationException
+  def createExecutableFile(name: String, run_ : VirtualFileRun) = {
+    checkCreate(name) match {
+      case Some(error) => error.message.ioErrorE
+      case _ =>
+        val file: InMemoryFile = new InMemoryFile(usersManager, this, name) {
+          override def internalRun(args: String*) = {
+            run_.run(args: _*)
+          }
+        }
+
+        for {
+          setExecutable <- file.setExecutable().right
+          setContent <- (file.content = "[byte]").right
+        } yield {
+          setExecutable.apply()
+          setContent.apply()
+          _files += file
+          file
+        }
+    }
+  }
+
+  def createDynamicFile(name: String, contentSupplier: () => AnyRef) = {
+    checkCreate(name) match {
+      case Some(error) => error.message.ioErrorE
+      case _ =>
+        val file: InMemoryFile = new InMemoryFile (usersManager, this, name)
+
+        for {
+          setContent <- (file.content = contentSupplier.apply()).right
+        } yield {
+          setContent.apply()
+          _files.add(file)
+          file
+        }
+    }
+  }
+
+  def rename(name: String) = {
+    "Unsupported operation".ioErrorE
+  }
+
+  private def checkCreate(name: String) : Option[IOError] = {
+    if (!usersManager.checkWriteAccess(this)) {
+      "Access denied.".ioErrorO
+    } else if (!usersManager.checkExecuteAccess(this)) {
+      "Access denied.".ioErrorO
+    } else if (_folders.exists(folder => folder.name == name) || _files.exists(file => file.name == name)) {
+      ("touch: cannot create file ‘" + name + "’: File exists").ioErrorO
+    } else {
+      None
+    }
   }
 }

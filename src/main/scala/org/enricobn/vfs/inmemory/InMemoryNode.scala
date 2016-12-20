@@ -4,6 +4,8 @@ import org.enricobn.vfs._
 
 import scala.collection.immutable.BitSet
 
+import IOError._
+
 /**
   * Created by enrico on 12/2/16.
   */
@@ -29,41 +31,53 @@ extends VirtualNode {
     usersManager.checkWriteAccess(parent)
   }
 
-  @throws[VirtualIOException]
-  final def setExecutable() {
-    checkWriteAccess()
-    _permissions.owner.execute = true
-    _permissions.group.execute = true
-    _permissions.others.execute = true
+  final def setExecutable() = {
+    if (!usersManager.checkWriteAccess(this)) {
+      "Access denied.".ioErrorE
+    } else {
+      Right(() => {
+        _permissions.owner.execute = true
+        _permissions.group.execute = true
+        _permissions.others.execute = true
+      })
+    }
   }
 
-  @throws[VirtualIOException]
-  final def setPermissions(permissions: VirtualPermissions) {
-    checkWriteAccess()
-    _permissions.owner.read = permissions.owner.read
-    _permissions.owner.write = permissions.owner.write
-    _permissions.owner.execute = permissions.owner.execute
-    _permissions.group.read = permissions.group.read
-    _permissions.group.write = permissions.group.write
-    _permissions.group.execute = permissions.group.execute
-    _permissions.others.read = permissions.others.read
-    _permissions.others.write = permissions.others.write
-    _permissions.others.execute = permissions.others.execute
+  final def setPermissions(permissions: VirtualPermissions) = {
+    if (!usersManager.checkWriteAccess(this)) {
+      "Access denied.".ioErrorE
+    } else {
+      Right(() => {
+        _permissions.owner.read = permissions.owner.read
+        _permissions.owner.write = permissions.owner.write
+        _permissions.owner.execute = permissions.owner.execute
+        _permissions.group.read = permissions.group.read
+        _permissions.group.write = permissions.group.write
+        _permissions.group.execute = permissions.group.execute
+        _permissions.others.read = permissions.others.read
+        _permissions.others.write = permissions.others.write
+        _permissions.others.execute = permissions.others.execute
+      })
+    }
   }
 
-  @throws[VirtualIOException]
-  final def chmod(value: Int) {
-    checkWriteAccess()
-    val mask = BitSet.fromBitMask(Array(fromOctal(value)))
-    _permissions.owner.read = mask(8)
-    _permissions.owner.write = mask(7)
-    _permissions.owner.execute = mask(6)
-    _permissions.group.read = mask(5)
-    _permissions.group.write = mask(4)
-    _permissions.group.execute = mask(3)
-    _permissions.others.read = mask(2)
-    _permissions.others.write = mask(1)
-    _permissions.others.execute = mask(0)
+  final def chmod(value: Int) = {
+    if (!usersManager.checkWriteAccess(this)) {
+      "Access denied.".ioErrorE
+    } else {
+      Right(() => {
+        val mask = BitSet.fromBitMask(Array(fromOctal(value)))
+        _permissions.owner.read = mask(8)
+        _permissions.owner.write = mask(7)
+        _permissions.owner.execute = mask(6)
+        _permissions.group.read = mask(5)
+        _permissions.group.write = mask(4)
+        _permissions.group.execute = mask(3)
+        _permissions.others.read = mask(2)
+        _permissions.others.write = mask(1)
+        _permissions.others.execute = mask(0)
+      })
+    }
   }
 
 //  private[inmemory] def getUsersManager: VirtualUsersManager = usersManager
@@ -77,13 +91,4 @@ extends VirtualNode {
     }
   }
 
-  private final def checkWriteAccess() {
-    try {
-      usersManager.checkWriteAccess(this)
-    }
-    catch {
-      case e: VirtualSecurityException =>
-        throw new VirtualIOException(e.getMessage, e)
-    }
-  }
 }

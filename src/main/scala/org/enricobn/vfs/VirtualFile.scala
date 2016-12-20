@@ -1,20 +1,17 @@
 package org.enricobn.vfs
 
-import scala.scalajs.js.annotation.JSExportAll
+import org.enricobn.vfs.IOError._
 
 /**
   * Created by enrico on 12/2/16.
   */
-@JSExportAll
+//@JSExportAll
 trait VirtualFile extends VirtualNode {
-  @throws[VirtualIOException]
-  def content: AnyRef
+  def content: Either[IOError, AnyRef]
 
-  @throws[VirtualIOException]
-  def content_=(content: AnyRef)
+  def content_=(content: AnyRef) : IOEff[Unit]
 
-  @throws[VirtualIOException]
-  def run(args: String*) {
-    throw new VirtualIOException(name + ": unsupported executable format")
-  }
+  def run(args: String*) : IOEff[Unit] =
+    (name + ": unsupported executable format").ioErrorE
+
 }

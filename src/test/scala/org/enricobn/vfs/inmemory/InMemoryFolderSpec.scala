@@ -11,8 +11,12 @@ class InMemoryFolderSpec extends FlatSpec with MockFactory with Matchers {
   def fixture = {
     val parent = stub[VirtualFolder]
 
+    val vum = stub[VirtualUsersManager]
+    (vum.checkWriteAccess _).when(*).returns(true)
+    (vum.checkExecuteAccess _).when(*).returns(true)
+    (vum.checkReadAccess _).when(*).returns(true)
     new {
-      val usersManager = stub[VirtualUsersManager]
+      val usersManager = vum
       val folder = new InMemoryFolder(usersManager, parent, "foo")
     }
   }
@@ -20,9 +24,9 @@ class InMemoryFolderSpec extends FlatSpec with MockFactory with Matchers {
   "ResolveFolder" should "return a sub path" in {
     val f = fixture
 
-    val usr: VirtualFolder = f.folder.mkdir("usr")
+    val usr = f.folder.mkdir("usr").right.get
 
-    assert(f.folder.resolveFolder("usr") == usr)
+    assert(f.folder.resolveFolder("usr").right.get.get == usr)
   }
 
   "chmod" should "777" in {
@@ -30,7 +34,7 @@ class InMemoryFolderSpec extends FlatSpec with MockFactory with Matchers {
 
     assert(!f.folder.permissions.others.write)
 
-    f.folder.chmod(777)
+    f.folder.chmod(777).right.get.apply()
 
     assert(f.folder.permissions.others.write)
   }
@@ -38,7 +42,7 @@ class InMemoryFolderSpec extends FlatSpec with MockFactory with Matchers {
   "chmod" should "377" in {
     val f = fixture
 
-    f.folder.chmod(377)
+    f.folder.chmod(377).right.get.apply()
 
     assert(!f.folder.permissions.owner.read)
   }
@@ -46,7 +50,7 @@ class InMemoryFolderSpec extends FlatSpec with MockFactory with Matchers {
   "chmod" should "477" in {
     val f = fixture
 
-    f.folder.chmod(477)
+    f.folder.chmod(477).right.get.apply()
 
     assert(f.folder.permissions.owner.read)
     assert(!f.folder.permissions.owner.write)
@@ -56,7 +60,7 @@ class InMemoryFolderSpec extends FlatSpec with MockFactory with Matchers {
   "chmod" should "77" in {
     val f = fixture
 
-    f.folder.chmod(77)
+    f.folder.chmod(77).right.get.apply()
 
     assert(!f.folder.permissions.owner.read)
     assert(!f.folder.permissions.owner.write)

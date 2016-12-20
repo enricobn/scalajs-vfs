@@ -22,6 +22,10 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
     f
   }
 
+  private def checkIOError(result: Option[IOError], message: String) =
+    assert(result.exists(e => e.message == message))
+
+
   "UserManager" should "start as root" in {
     val f = fixture
 
@@ -46,11 +50,13 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
   "Login with invalid password" should "throws an exception" in {
     val f = fixture
 
-    val caught =
-      intercept[VirtualSecurityException] {
-      f.usersManager.logUser("guest", "invalid")
-    }
-    assert(caught.getMessage == "Invalid password.")
+    checkIOError(f.usersManager.logUser("guest", "invalid"), "Invalid password.")
+
+    //    val caught =
+//      intercept[VirtualSecurityException] {
+//      f.usersManager.logUser("guest", "invalid")
+//    }
+//    assert(caught.getMessage == "Invalid password.")
   }
 
   "Login root with invalid password" should "throws an exception" in {
@@ -58,11 +64,7 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
 
     f.usersManager.logUser("guest", f.guestPassword)
 
-    val caught =
-      intercept[VirtualSecurityException] {
-      f.usersManager.logRoot("invalid")
-    }
-    assert(caught.getMessage == "Invalid password.")
+    checkIOError(f.usersManager.logRoot("invalid"), "Invalid password.")
   }
 
   "Login root with null password" should "throws an exception" in {
@@ -70,71 +72,43 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
 
     f.usersManager.logUser("guest", f.guestPassword)
 
-    val caught =
-      intercept[VirtualSecurityException] {
-        f.usersManager.logRoot(null)
-      }
-    assert(caught.getMessage == "Invalid password.")
+    checkIOError(f.usersManager.logRoot(null), "Invalid password.")
   }
 
   "Login guest with null password" should "throws an exception" in {
     val f = fixture
 
-    val caught =
-      intercept[VirtualSecurityException] {
-        f.usersManager.logUser("guest", null)
-      }
-    assert(caught.getMessage == "Invalid password.")
+    checkIOError(f.usersManager.logUser("guest", null), "Invalid password.")
   }
 
   "Login with invalid user" should "throws an exception" in {
     val f = fixture
 
-    val caught =
-      intercept[VirtualSecurityException] {
-        f.usersManager.logUser("invalid", "pwd")
-      }
-    assert(caught.getMessage == "Invalid user.")
+    checkIOError(f.usersManager.logUser("invalid", "pwd"), "Invalid user.")
   }
 
   "Adding an already added user" should "throws an exception" in {
     val f = fixture
 
-    val caught =
-      intercept[VirtualSecurityException] {
-        f.usersManager.addUser("guest", f.guestPassword)
-      }
-    assert(caught.getMessage == "User already added.")
+    checkIOError(f.usersManager.addUser("guest", f.guestPassword), "User already added.")
   }
 
   "Adding an already added user with invalid password" should "throws an exception" in {
     val f = fixture
 
-    val caught =
-      intercept[VirtualSecurityException] {
-        f.usersManager.addUser("guest", "invalid")
-      }
-    assert(caught.getMessage == "User already added.")
+    checkIOError(f.usersManager.addUser("guest", "invalid"), "User already added.")
   }
 
   "Adding root" should "throws an exception" in {
     val f = fixture
 
-    val caught =
-      intercept[VirtualSecurityException] {
-        f.usersManager.addUser("root", f.rootPassword)
-      }
-    assert(caught.getMessage == "User already added.")
+    checkIOError(f.usersManager.addUser("root", f.rootPassword), "User already added.")
   }
 
   "Adding root with invalid password" should "throws an exception" in {
     val f = fixture
 
-    val caught =
-      intercept[VirtualSecurityException] {
-        f.usersManager.addUser("root", "invalid")
-      }
-    assert(caught.getMessage == "User already added.")
+    checkIOError(f.usersManager.addUser("root", "invalid"), "User already added.")
   }
 
   "Adding user from another user" should "throws an exception" in {
@@ -142,32 +116,28 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
 
     f.usersManager.logUser("guest", f.guestPassword)
 
-    val caught =
-      intercept[VirtualSecurityException] {
-        f.usersManager.addUser("brian", "brian")
-      }
-    assert(caught.getMessage == "Only root can add users.")
+    checkIOError(f.usersManager.addUser("brian", "brian"), "Only root can add users.")
   }
 
   "Check read access for root" should "be fine" in {
     val f = fixture
 
     val node = mock[VirtualNode]
-    f.usersManager.checkReadAccess(node)
+    assert(f.usersManager.checkReadAccess(node))
   }
 
   "Check write access for root" should "be fine" in {
     val f = fixture
 
     val node = mock[VirtualNode]
-    f.usersManager.checkWriteAccess(node)
+    assert(f.usersManager.checkWriteAccess(node))
   }
 
   "Check execute access for root" should "be fine" in {
     val f = fixture
 
     val node = mock[VirtualNode]
-    f.usersManager.checkWriteAccess(node)
+    assert(f.usersManager.checkWriteAccess(node))
   }
 
   "Read access for owner" should "be fine" in {
@@ -181,7 +151,7 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
     (node.permissions.owner _).when().returns(permission)
     (permission.read _).when().returns(true)
 
-    f.usersManager.checkReadAccess(node)
+    assert(f.usersManager.checkReadAccess(node))
   }
 
   "Read access for other" should "be fine" in {
@@ -195,7 +165,7 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
     (node.permissions.others _).when().returns(permission)
     (permission.read _).when().returns(true)
 
-    f.usersManager.checkReadAccess(node)
+    assert(f.usersManager.checkReadAccess(node))
   }
 
   "Read access for owner" should "not be granted" in {
@@ -209,10 +179,7 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
     (node.permissions.owner _).when().returns(permission)
     (permission.read _).when().returns(false)
 
-    val caught = intercept[VirtualSecurityException] {
-      f.usersManager.checkReadAccess(node)
-    }
-    assert(caught.getMessage == "text.txt: permission denied.")
+    assert(!f.usersManager.checkReadAccess(node))
   }
 
   "Read access for others" should "not be granted" in {
@@ -226,10 +193,7 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
     (node.permissions.others _).when().returns(permission)
     (permission.read _).when().returns(false)
 
-    val caught = intercept[VirtualSecurityException] {
-      f.usersManager.checkReadAccess(node)
-    }
-    assert(caught.getMessage == "text.txt: permission denied.")
+    assert(!f.usersManager.checkReadAccess(node))
   }
 
   private def createNode(owner: String, name: String): VirtualNode = {

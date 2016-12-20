@@ -10,8 +10,13 @@ import org.scalatest.{FlatSpec, Matchers}
 class InMemoryFSSpec extends FlatSpec with MockFactory with Matchers {
 
   def fixture = {
+    val vum = stub[VirtualUsersManager]
+    (vum.checkWriteAccess _).when(*).returns(true)
+    (vum.checkExecuteAccess _).when(*).returns(true)
+    (vum.checkReadAccess _).when(*).returns(true)
+
     val f = new {
-      val usersManager = stub[VirtualUsersManager]
+      val usersManager = vum
       val fs = new InMemoryFS(usersManager)
     }
     (f.usersManager.currentUser _).when().returns("foo")
@@ -29,11 +34,11 @@ class InMemoryFSSpec extends FlatSpec with MockFactory with Matchers {
 
     val folderName = "foo"
 
-    val pippo = f.fs.root.mkdir(folderName)
+    val pippo = f.fs.root.mkdir(folderName).right.get
 
     assert(pippo.name == folderName)
-    assert(f.fs.root.folders.size == 1)
-    assert(f.fs.root.folders.head.name == folderName)
+    assert(f.fs.root.folders.right.get.size == 1)
+    assert(f.fs.root.folders.right.get.head.name == folderName)
   }
 
   "Mkdir" should "add a folder with current user as owner" in {
@@ -41,7 +46,7 @@ class InMemoryFSSpec extends FlatSpec with MockFactory with Matchers {
 
     val folderName = "foo"
 
-    val pippo = f.fs.root.mkdir(folderName)
+    val pippo = f.fs.root.mkdir(folderName).right.get
 
     assert(pippo.owner == "foo")
   }
