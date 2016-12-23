@@ -11,7 +11,7 @@ trait VirtualFile extends VirtualNode {
 
   def content_=(content: AnyRef) : Either[IOError, Unit]
 
-  def run(args: String*) : Either[IOError, Unit] =
+  def run(input: VFSInput, output: VFSOutput, args: String*): Either[IOError, Unit] =
     (name + ": unsupported executable format").ioErrorE
 
 }

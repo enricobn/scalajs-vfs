@@ -5,6 +5,6 @@ package org.enricobn.vfs
   */
 trait VirtualFileRun {
 
-  def run(args: String*) : Either[IOError, Unit]
+  def run(input: VFSInput, output: VFSOutput, args: String*) : Either[IOError, Unit]
 
 }

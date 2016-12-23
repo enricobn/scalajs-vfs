@@ -143,8 +143,8 @@ with VirtualFolder {
       case Some(error) => error.message.ioErrorE
       case _ =>
         val file: InMemoryFile = new InMemoryFile(usersManager, this, name) {
-          override def internalRun(args: String*) = {
-            _run.run(args: _*)
+          protected override def internalRun(input: VFSInput, output: VFSOutput, args: String*) = {
+            _run.run(input, output, args: _*)
           }
         }
 
