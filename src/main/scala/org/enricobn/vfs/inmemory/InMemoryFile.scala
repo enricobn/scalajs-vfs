@@ -19,15 +19,4 @@ extends InMemoryNode(usersManager, parent, name) with VirtualFile {
     Right(this._content = content)
   }
 
-
-  final override def run(input: VFSInput, output: VFSOutput, args: String*) = {
-    if (!usersManager.checkExecuteAccess(this)) {
-      "Access denied.".ioErrorE
-    }
-    internalRun(input, output, args: _*)
-  }
-
-  protected def internalRun(input: VFSInput, output: VFSOutput, args: String*): Either[IOError, Unit] =
-    (name + ": unsupported executable format").ioErrorE
-
 }

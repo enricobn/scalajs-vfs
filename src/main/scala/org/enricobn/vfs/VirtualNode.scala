@@ -23,9 +23,6 @@ trait VirtualNode {
 
   def chmod(value: Int) : Either[IOError, Unit]
 
-//  @throws[VirtualIOException]
-//  def executable_=(executable: Boolean) : Unit
-
   def path: String = {
     if (parent != null) {
       if (parent.parent != null) {
@@ -38,9 +35,9 @@ trait VirtualNode {
     "/"
   }
 
-  def canEqual(other: Any): Boolean = other.isInstanceOf[VirtualNode]
-
   def getCurrentUserPermission : VirtualPermission
+
+  def canEqual(other: Any): Boolean = other.isInstanceOf[VirtualNode]
 
   override def equals(other: Any): Boolean = other match {
     case that: VirtualNode =>

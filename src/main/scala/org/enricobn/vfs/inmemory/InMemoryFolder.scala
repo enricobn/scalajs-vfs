@@ -31,28 +31,9 @@ with VirtualFolder {
       Right(())
     }
 
-  def folders = {
-    for {
-      _ <- checkExecuteAccessE().right
-    } yield _folders.toSet
-//
-//    if (!usersManager.checkExecuteAccess(this)) {
-//      "Access denied.".ioErrorE
-//    } else {
-//      Right(_folders.toSet)
-//    }
-  }
+  def folders = checkExecuteAccessE().right.map(_ =>_folders.toSet)
 
-  def files = {
-    for {
-      _ <- checkExecuteAccessE().right
-    } yield _files.toSet
-//    if (!usersManager.checkExecuteAccess(this)) {
-//      "Access denied.".ioErrorE
-//    } else {
-//      Right(_files.toSet)
-//    }
-  }
+  def files = checkExecuteAccessE().right.map(_ => _files.toSet)
 
   def mkdir(name: String) = {
     for {
@@ -67,65 +48,28 @@ with VirtualFolder {
       _folders.add(folder)
       folder
     }
-//    if (!usersManager.checkWriteAccess(this)) {
-//      "Access denied.".ioErrorE
-//    } else if (!usersManager.checkExecuteAccess(this)) {
-//      "Access denied.".ioErrorE
-//    } else if (_folders.exists(folder => folder.name == name) || _files.exists(file => file.name == name)) {
-//      ("mkdir: cannot create directory ‘" + name + "’: File exists").ioErrorE
-//    } else {
-//      val folder: InMemoryFolder = new InMemoryFolder(usersManager, this, name)
-//      _folders.add(folder)
-//      Right(folder)
-//    }
   }
 
   def deleteFile(name: String) = {
     for {
       _ <- checkExecuteAccessE().right
       _ <- checkWriteAccessE().right
-      effect <- _files.find(_.name == name)
+      deleted <- _files.find(_.name == name)
               .map(file => _files.remove(file))
               .toRight(IOError("No such file"))
               .right
-    } yield effect
-
-//    if (!usersManager.checkWriteAccess(this)) {
-//      "Access denied.".ioErrorE
-//    } else if (!usersManager.checkExecuteAccess(this)) {
-//      "Access denied.".ioErrorE
-//    } else {
-//      _files.find(_.name == name)
-//        .map(file => () => _files.remove(file))
-//        .toRight(IOError("No such file"))
-////      if (file.isDefined)
-////        Right(() => _files.remove(file.get))
-////      else
-////        "No such file".ioErrorE
-//    }
+    } yield deleted
   }
 
   def deleteFolder(name: String) = {
     for {
       _ <- checkExecuteAccessE().right
       _ <- checkWriteAccessE().right
-      effect <- _folders.find(_.name == name)
+      deleted <- _folders.find(_.name == name)
         .map(file => _folders.remove(file))
         .toRight(IOError("No such file"))
         .right
-    } yield effect
-
-//    if (!usersManager.checkWriteAccess(this)) {
-//      "Access denied.".ioErrorE
-//    } else if (!usersManager.checkExecuteAccess(this)) {
-//      "Access denied.".ioErrorE
-//    } else {
-//      val folder = _folders.find(_.name == name)
-//      if (folder.isDefined)
-//        Right(() => _folders.remove(folder.get))
-//      else
-//        "No such file".ioErrorE
-//    }
+    } yield deleted
   }
 
   def touch(name: String) = {
@@ -135,26 +79,6 @@ with VirtualFolder {
         val file: InMemoryFile = new InMemoryFile (usersManager, this, name)
         _files.add (file)
         Right(file)
-    }
-  }
-
-  def createExecutableFile(name: String, _run : VirtualFileRun) = {
-    checkCreate(name) match {
-      case Some(error) => error.message.ioErrorE
-      case _ =>
-        val file: InMemoryFile = new InMemoryFile(usersManager, this, name) {
-          protected override def internalRun(input: VFSInput, output: VFSOutput, args: String*) = {
-            _run.run(input, output, args: _*)
-          }
-        }
-
-        for {
-          _ <- file.setExecutable().right
-          _ <- (file.content = "[byte]").right
-        } yield {
-          _files += file
-          file
-        }
     }
   }
 
