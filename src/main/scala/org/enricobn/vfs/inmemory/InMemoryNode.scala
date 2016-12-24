@@ -80,8 +80,6 @@ extends VirtualNode {
     }
   }
 
-//  private[inmemory] def getUsersManager: VirtualUsersManager = usersManager
-
   final override def getCurrentUserPermission: VirtualPermission = {
     // TODO group
     if (usersManager.currentUser == owner) {
