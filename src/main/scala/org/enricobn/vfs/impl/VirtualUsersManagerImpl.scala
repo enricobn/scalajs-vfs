@@ -31,18 +31,6 @@ final class VirtualUsersManagerImpl(rootPassword: String) extends VirtualUsersMa
     checkAccess(node, (vp: VirtualPermission) => vp.execute)
   }
 
-  private def checkAccess(node: VirtualNode, permission: (VirtualPermission) => Boolean) : Boolean = {
-    if (VirtualUsersManager.ROOT == currentUser) {
-      return true
-    }
-    if (node.owner == currentUser) {
-      permission.apply(node.permissions.owner)
-    //TODO group
-    } else {
-      permission.apply(node.permissions.others)
-    }
-  }
-
   def logUser(user: String, password: String) = {
     if (!users.contains(user)) {
       "Invalid user.".ioErrorO
@@ -73,4 +61,20 @@ final class VirtualUsersManagerImpl(rootPassword: String) extends VirtualUsersMa
       None
     }
   }
+
+
+  override def userExists(user: String): Boolean = users.contains(user)
+
+  private def checkAccess(node: VirtualNode, permission: (VirtualPermission) => Boolean) : Boolean = {
+    if (VirtualUsersManager.ROOT == currentUser) {
+      return true
+    }
+    if (node.owner == currentUser) {
+      permission.apply(node.permissions.owner)
+      //TODO group
+    } else {
+      permission.apply(node.permissions.others)
+    }
+  }
+
 }

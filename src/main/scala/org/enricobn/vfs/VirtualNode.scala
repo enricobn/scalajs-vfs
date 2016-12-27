@@ -23,6 +23,8 @@ trait VirtualNode {
 
   def chmod(value: Int) : Either[IOError, Unit]
 
+  def chown(owner: String) : Either[IOError, Unit]
+
   def path: String = {
     if (parent != null) {
       if (parent.parent != null) {

@@ -21,4 +21,6 @@ trait VirtualUsersManager {
   def addUser(user: String, password: String) : Option[IOError]
 
   def currentUser: String
+
+  def userExists(user: String) : Boolean
 }

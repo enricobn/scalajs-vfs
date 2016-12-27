@@ -22,8 +22,11 @@ object InMemoryNode {
 class InMemoryNode private[inmemory] (val usersManager: VirtualUsersManager, val parent: VirtualFolder, val name: String)
 extends VirtualNode {
   import InMemoryNode._
-  final val owner: String = usersManager.currentUser
+
+  private var _owner: String = usersManager.currentUser
   private val _permissions: InMemoryPermissions = new InMemoryPermissions
+
+  final def owner: String = _owner
 
   final def permissions: InMemoryPermissions = _permissions
 
@@ -79,6 +82,16 @@ extends VirtualNode {
       })
     }
   }
+
+
+  override def chown(user: String): Either[IOError, Unit] =
+    if (!usersManager.checkWriteAccess(this)) {
+      "Access denied.".ioErrorE
+    } else if (!usersManager.userExists(user)) {
+      "User not defined.".ioErrorE
+    } else {
+      Right({_owner = user})
+    }
 
   final override def getCurrentUserPermission: VirtualPermission = {
     // TODO group
