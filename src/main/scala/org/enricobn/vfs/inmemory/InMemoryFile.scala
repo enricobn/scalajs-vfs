@@ -20,9 +20,10 @@ extends InMemoryNode(usersManager, parent, name) with VirtualFile {
 
   final def content_=(content: AnyRef) =
     if (!usersManager.checkWriteAccess(this)) {
-      "Access denied.".ioErrorE
+      "Access denied.".ioErrorO
     } else {
-      Right(this._content = content)
+      this._content = content
+      None
     }
 
 }

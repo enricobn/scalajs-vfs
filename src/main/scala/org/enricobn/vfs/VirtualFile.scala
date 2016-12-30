@@ -7,6 +7,6 @@ package org.enricobn.vfs
 trait VirtualFile extends VirtualNode {
   def content: Either[IOError, AnyRef]
 
-  def content_=(content: AnyRef) : Either[IOError, Unit]
+  def content_=(content: AnyRef) : Option[IOError]
 
 }

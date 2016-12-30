@@ -20,7 +20,7 @@ trait VirtualFolder extends VirtualNode {
 
   def touch(name: String): Either[IOError, VirtualFile]
 
-  def rename(name: String) : Either[IOError, Unit]
+  def rename(name: String) : Option[IOError]
 
   def findFile(fileName: String): Either[IOError, Option[VirtualFile]] = {
     findFile(fileName, _ => true)

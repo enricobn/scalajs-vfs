@@ -13,63 +13,67 @@ with VirtualFolder {
   private val _folders = new scala.collection.mutable.HashSet[InMemoryFolder]
 
   setExecutable() match {
-    case Left(error) => throw new IllegalStateException(error.message)
+    case Some(error) => throw new IllegalStateException(error.message)
     case _ =>
   }
 
-  private def checkExecuteAccessE() : Either[IOError, Unit] =
+  private def checkExecuteAccess() : Option[IOError] =
     if (!usersManager.checkExecuteAccess(this)) {
-      "Access denied.".ioErrorE
+      "Access denied.".ioErrorO
     } else {
-      Right(())
+      None
     }
 
-  private def checkWriteAccessE() : Either[IOError, Unit] =
+  private def checkWriteAccess() : Option[IOError] =
     if (!usersManager.checkWriteAccess(this)) {
-      "Access denied.".ioErrorE
+      "Access denied.".ioErrorO
     } else {
-      Right(())
+      None
     }
 
-  def folders = checkExecuteAccessE().right.map(_ =>_folders.toSet)
+  def folders = checkExecuteAccess().toLeft(_folders.toSet)
 
-  def files = checkExecuteAccessE().right.map(_ => _files.toSet)
+  def files = checkExecuteAccess().toLeft(_files.toSet)
 
   def mkdir(name: String) = {
-    for {
-      _ <- checkExecuteAccessE().right
-      _ <- checkWriteAccessE().right
-      folder <- if (_folders.exists(folder => folder.name == name) || _files.exists(file => file.name == name)) {
-                  ("mkdir: cannot create directory ‘" + name + "’: File exists").ioErrorE.right
-                } else {
-                  Right(new InMemoryFolder(usersManager, this, name)).right
-                }
-    } yield {
-      _folders.add(folder)
-      folder
-    }
+    checkWriteAccess()
+      .orElse(checkExecuteAccess())
+      .orElse({
+        if (_folders.exists(folder => folder.name == name) || _files.exists(file => file.name == name)) {
+          ("mkdir: cannot create directory ‘" + name + "’: File exists").ioErrorO
+        } else {
+          None
+        }
+      })
+      .toLeft({
+        val folder = new InMemoryFolder(usersManager, this, name)
+        _folders.add(folder)
+        folder
+      })
   }
 
   def deleteFile(name: String) = {
-    for {
-      _ <- checkExecuteAccessE().right
-      _ <- checkWriteAccessE().right
-      deleted <- _files.find(_.name == name)
-              .map(file => _files.remove(file))
-              .toRight(IOError("No such file"))
-              .right
-    } yield deleted
+    checkWriteAccess()
+      .orElse(checkExecuteAccess())
+      .toLeft(
+        _files
+          .find(_.name == name)
+          .map(file => _files.remove(file))
+      )
+      .right
+      .flatMap(_.toRight(IOError("No such file.")))
   }
 
   def deleteFolder(name: String) = {
-    for {
-      _ <- checkExecuteAccessE().right
-      _ <- checkWriteAccessE().right
-      deleted <- _folders.find(_.name == name)
-        .map(file => _folders.remove(file))
-        .toRight(IOError("No such file"))
-        .right
-    } yield deleted
+    checkWriteAccess()
+      .orElse(checkExecuteAccess())
+      .toLeft(
+        _folders
+          .find(_.name == name)
+          .map(file => _folders.remove(file))
+      )
+      .right
+      .flatMap(_.toRight(IOError("No such file.")))
   }
 
   def touch(name: String) = {
@@ -83,7 +87,7 @@ with VirtualFolder {
   }
 
   def rename(name: String) = {
-    "Unsupported operation".ioErrorE
+    "Unsupported operation".ioErrorO
   }
 
   private def checkCreate(name: String) : Option[IOError] = {

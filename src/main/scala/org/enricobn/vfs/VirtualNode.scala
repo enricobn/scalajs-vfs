@@ -17,13 +17,13 @@ trait VirtualNode {
 
   def permissions: VirtualPermissions
 
-  def setExecutable() : Either[IOError, Unit]
+  def setExecutable() : Option[IOError]
 
-  def setPermissions(permissions: VirtualPermissions) : Either[IOError, Unit]
+  def setPermissions(permissions: VirtualPermissions) : Option[IOError]
 
-  def chmod(value: Int) : Either[IOError, Unit]
+  def chmod(value: Int) : Option[IOError]
 
-  def chown(owner: String) : Either[IOError, Unit]
+  def chown(owner: String) : Option[IOError]
 
   def path: String = {
     if (parent != null) {
