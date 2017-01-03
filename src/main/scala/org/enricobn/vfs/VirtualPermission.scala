@@ -33,7 +33,7 @@ trait VirtualPermission {
   def octal: Int = {
     def toInt(b: Boolean): Int = if (b) 1 else 0
 
-    toInt(execute) + 2 * toInt(write) * 4 * toInt(read)
+    toInt(execute) + 2 * toInt(write) + 4 * toInt(read)
   }
 
 }
