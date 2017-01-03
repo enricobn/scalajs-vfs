@@ -37,4 +37,29 @@ class VirtualAbsolutePathSpec extends FlatSpec with MockFactory with Matchers {
     assert(example.parent.isEmpty)
   }
 
+  "parent of /foo/" should "be /" in {
+    val example = VirtualAbsolutePath("/foo/")
+    assert(example.parent.get == VirtualAbsolutePath("/"))
+  }
+
+  "name of /" should "be /" in {
+    val example = VirtualAbsolutePath("/")
+    assert(example.name == "/")
+  }
+
+  "name of /foo" should "be foo" in {
+    val example = VirtualAbsolutePath("/foo")
+    assert(example.name == "foo")
+  }
+
+  "name of /foo/text.txt" should "be text.txt" in {
+    val example = VirtualAbsolutePath("/foo/text.txt")
+    assert(example.name == "text.txt")
+  }
+
+  "name of /foo/" should "be foo" in {
+    val example = VirtualAbsolutePath("/foo/")
+    assert(example.name == "foo")
+  }
+
 }

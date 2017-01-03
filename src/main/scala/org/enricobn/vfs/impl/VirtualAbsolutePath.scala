@@ -12,19 +12,38 @@ case class VirtualAbsolutePath(path: String) {
 
   require(path.startsWith("/"), "Not an absolute path.")
 
-  def isRoot = path == "/"
+  private lazy val lastSlash = {
+    val last = path.lastIndexOf('/')
+    if (last == path.length - 1) {
+      if (last == 0) {
+        0
+      } else {
+        path.substring(0, last).lastIndexOf('/')
+      }
+    } else {
+      last
+    }
+  }
 
-  def parent : Option[VirtualAbsolutePath] =
+  lazy val isRoot = path == "/"
+
+  lazy val parent : Option[VirtualAbsolutePath] =
     if (isRoot) {
       None
+    } else if (lastSlash == 0) {
+      Some(ROOT)
     } else {
-      val lastSlash = path.lastIndexOf('/')
-      if (lastSlash < 0) {
-        None
-      } else if (lastSlash == 0) {
-        Some(ROOT)
+      Some(VirtualAbsolutePath(path.substring(0, lastSlash)))
+    }
+
+  lazy val name : String =
+    if (isRoot) {
+      "/"
+    } else {
+      if (path.endsWith("/")) {
+        path.substring(lastSlash + 1, path.length - lastSlash - 1)
       } else {
-        Some(VirtualAbsolutePath(path.substring(0, lastSlash)))
+        path.substring(lastSlash + 1)
       }
     }
 
