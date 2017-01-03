@@ -28,4 +28,6 @@ case class VirtualAbsolutePath(path: String) {
       }
     }
 
+  override def toString: String = path
+  
 }
