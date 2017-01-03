@@ -32,4 +32,6 @@ trait VirtualPermissions {
   def group: VirtualPermission
 
   def others: VirtualPermission
+
+  def octal : Int = others.octal + 10 * group.octal + 100 * owner.octal
 }

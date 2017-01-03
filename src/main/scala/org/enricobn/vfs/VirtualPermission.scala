@@ -19,6 +19,7 @@ object VirtualPermission {
 
     def execute: Boolean = false
   }
+
 }
 
 trait VirtualPermission {
@@ -28,4 +29,11 @@ trait VirtualPermission {
   def write: Boolean
 
   def execute: Boolean
+
+  def octal: Int = {
+    def toInt(b: Boolean): Int = if (b) 1 else 0
+
+    toInt(execute) + 2 * toInt(write) * 4 * toInt(read)
+  }
+
 }

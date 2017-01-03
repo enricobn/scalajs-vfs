@@ -9,9 +9,6 @@ import org.scalatest.{FlatSpec, Matchers}
 // to access members of structural types (new {}) without warnings
 import scala.language.reflectiveCalls
 
-// to access members of structural types (new {}) without warnings
-import scala.language.reflectiveCalls
-
 /**
   * Created by enrico on 12/3/16.
   */
