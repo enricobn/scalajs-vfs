@@ -55,7 +55,7 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
 
     checkIOError(f.usersManager.logUser("guest", "invalid"), "Invalid password.")
 
-    //    val caught =
+//    val caught =
 //      intercept[VirtualSecurityException] {
 //      f.usersManager.logUser("guest", "invalid")
 //    }
