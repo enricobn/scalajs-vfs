@@ -3,7 +3,7 @@ package org.enricobn.vfs.utils
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{FlatSpec, Matchers}
 
-import Lift._
+import Utils._
 
 /**
   * Created by enrico on 1/3/17.

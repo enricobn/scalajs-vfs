@@ -11,14 +11,14 @@ class InMemoryFile private[inmemory] (usersManager: VirtualUsersManager, parent:
 extends InMemoryNode(usersManager, parent, name) with VirtualFile {
   private var _content: AnyRef = ""
 
-  final def content =
+  final def content: Either[IOError, AnyRef] =
     if (!usersManager.checkReadAccess(this)) {
       "Access denied.".ioErrorE
     } else {
         Right(_content)
     }
 
-  final def content_=(content: AnyRef) =
+  final def content_=(content: AnyRef): Option[IOError] =
     if (!usersManager.checkWriteAccess(this)) {
       "Access denied.".ioErrorO
     } else {

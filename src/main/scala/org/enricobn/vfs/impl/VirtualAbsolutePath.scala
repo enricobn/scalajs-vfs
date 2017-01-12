@@ -25,7 +25,7 @@ case class VirtualAbsolutePath(path: String) {
     }
   }
 
-  lazy val isRoot = path == "/"
+  lazy val isRoot: Boolean = path == "/"
 
   lazy val parent : Option[VirtualAbsolutePath] =
     if (isRoot) {

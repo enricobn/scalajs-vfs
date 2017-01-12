@@ -1,7 +1,9 @@
 import sbt.Keys._
 
+scalaVersion in ThisBuild := "2.11.8"
+
 val project_name = "scalajs-vfs"
-val project_version = "1.0.0"
+val project_version = "1.0.0-SNAPSHOT"
 
 val artifactPrefix = "target/scala-2.11/" + project_name + "-" + project_version
 
@@ -9,7 +11,6 @@ scalacOptions ++= Seq("-feature", "-deprecation")
 
 lazy val root = (project in file("."))
   .settings(
-    scalaVersion := "2.11.8",
     organization := "org.enricobn",
     name := project_name,
     version := project_version,

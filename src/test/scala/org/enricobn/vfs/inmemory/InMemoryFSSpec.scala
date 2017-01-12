@@ -4,6 +4,8 @@ import org.enricobn.vfs.VirtualUsersManager
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{FlatSpec, Matchers}
 
+import scala.language.reflectiveCalls
+
 /**
   * Created by enrico on 12/3/16.
   */
@@ -16,7 +18,7 @@ class InMemoryFSSpec extends FlatSpec with MockFactory with Matchers {
     (vum.checkReadAccess _).when(*).returns(true)
 
     val f = new {
-      val usersManager = vum
+      val usersManager: VirtualUsersManager = vum
       val fs = new InMemoryFS(usersManager)
     }
     (f.usersManager.currentUser _).when().returns("foo")

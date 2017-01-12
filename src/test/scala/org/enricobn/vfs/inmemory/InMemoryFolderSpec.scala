@@ -4,6 +4,8 @@ import org.enricobn.vfs.{VirtualFolder, VirtualUsersManager}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{FlatSpec, Matchers}
 
+import scala.language.reflectiveCalls
+
 /**
   * Created by enrico on 12/5/16.
   */

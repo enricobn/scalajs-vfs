@@ -1,9 +1,8 @@
 package org.enricobn.vfs.impl
 
-import org.enricobn.vfs.{VirtualNode, VirtualPermission, VirtualUsersManager}
+import org.enricobn.vfs.{IOError, VirtualNode, VirtualPermission, VirtualUsersManager}
 
 import scala.scalajs.js.annotation.{JSExport, JSExportAll}
-
 import org.enricobn.vfs.IOError._
 
 /**
@@ -19,19 +18,19 @@ final class VirtualUsersManagerImpl(rootPassword: String) extends VirtualUsersMa
 
   def currentUser: String = _currentUser
 
-  def checkWriteAccess(node: VirtualNode) = {
+  def checkWriteAccess(node: VirtualNode): Boolean = {
     checkAccess(node, (vp: VirtualPermission) => vp.write)
   }
 
-  def checkReadAccess(node: VirtualNode) = {
+  def checkReadAccess(node: VirtualNode): Boolean = {
     checkAccess(node, (vp: VirtualPermission) => vp.read)
   }
 
-  def checkExecuteAccess(node: VirtualNode) = {
+  def checkExecuteAccess(node: VirtualNode): Boolean = {
     checkAccess(node, (vp: VirtualPermission) => vp.execute)
   }
 
-  def logUser(user: String, password: String) = {
+  def logUser(user: String, password: String): Option[IOError] = {
     if (!users.contains(user)) {
       "Invalid user.".ioErrorO
     } else if (!users.get(user).contains(password)) {
@@ -42,7 +41,7 @@ final class VirtualUsersManagerImpl(rootPassword: String) extends VirtualUsersMa
     }
   }
 
-  def logRoot(password: String) = {
+  def logRoot(password: String): Option[IOError] = {
     if (rootPassword != password) {
       "Invalid password.".ioErrorO
     } else {
@@ -51,7 +50,7 @@ final class VirtualUsersManagerImpl(rootPassword: String) extends VirtualUsersMa
     }
   }
 
-  def addUser(user: String, password: String) = {
+  def addUser(user: String, password: String): Option[IOError] = {
     if (currentUser != VirtualUsersManager.ROOT) {
       "Only root can add users.".ioErrorO
     } else if (users.contains(user)) {

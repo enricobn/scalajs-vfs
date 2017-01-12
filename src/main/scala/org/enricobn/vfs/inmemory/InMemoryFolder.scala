@@ -31,11 +31,11 @@ with VirtualFolder {
       None
     }
 
-  def folders = checkExecuteAccess().toLeft(_folders.toSet)
+  def folders: Either[IOError, Set[VirtualFolder]] = checkExecuteAccess().toLeft(_folders.toSet)
 
-  def files = checkExecuteAccess().toLeft(_files.toSet)
+  def files: Either[IOError, Set[VirtualFile]] = checkExecuteAccess().toLeft(_files.toSet)
 
-  def mkdir(name: String) = {
+  def mkdir(name: String): Either[IOError, InMemoryFolder] = {
     checkWriteAccess()
       .orElse(checkExecuteAccess())
       .orElse({
@@ -52,31 +52,25 @@ with VirtualFolder {
       })
   }
 
-  def deleteFile(name: String) = {
+  def deleteFile(name: String): Option[IOError] = {
     checkWriteAccess()
-      .orElse(checkExecuteAccess())
-      .toLeft(
-        _files
-          .find(_.name == name)
-          .map(file => _files.remove(file))
+      .orElse(findFile(name).right.map {
+          case Some(file) => _files.remove(file.asInstanceOf[InMemoryFile])
+          case _ => IOError("No such file.")
+        }.left.toOption
       )
-      .right
-      .flatMap(_.toRight(IOError("No such file.")))
   }
 
-  def deleteFolder(name: String) = {
+  def deleteFolder(name: String): Option[IOError] = {
     checkWriteAccess()
-      .orElse(checkExecuteAccess())
-      .toLeft(
-        _folders
-          .find(_.name == name)
-          .map(file => _folders.remove(file))
-      )
-      .right
-      .flatMap(_.toRight(IOError("No such file.")))
+        .orElse(findFolder(name).right.map {
+          case Some(folder) => _folders.remove(folder.asInstanceOf[InMemoryFolder])
+          case _ => IOError("No such directory.")
+        }.left.toOption
+    )
   }
 
-  def touch(name: String) = {
+  def touch(name: String): Either[IOError, InMemoryFile] = {
     checkCreate(name) match {
       case Some(error) => error.message.ioErrorE
       case _ =>
@@ -86,7 +80,7 @@ with VirtualFolder {
     }
   }
 
-  def rename(name: String) = {
+  def rename(name: String): Some[IOError] = {
     "Unsupported operation".ioErrorO
   }
 

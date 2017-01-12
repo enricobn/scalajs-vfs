@@ -14,23 +14,19 @@ trait VirtualFolder extends VirtualNode {
 
   def mkdir(name: String): Either[IOError, VirtualFolder]
 
-  def deleteFile(name: String) : Either[IOError, Boolean]
+  def deleteFile(name: String) : Option[IOError]
 
-  def deleteFolder(name: String) : Either[IOError, Boolean]
+  def deleteFolder(name: String) : Option[IOError]
 
   def touch(name: String): Either[IOError, VirtualFile]
 
   def rename(name: String) : Option[IOError]
 
-  def findFile(fileName: String): Either[IOError, Option[VirtualFile]] = {
-    findFile(fileName, _ => true)
-  }
-
-  def findFile(fileName: String, predicate: Function[VirtualFile, Boolean]): Either[IOError, Option[VirtualFile]] = {
+  def findFile(fileName: String, predicate: Function[VirtualFile, Boolean] = _ => true): Either[IOError, Option[VirtualFile]] = {
     files.right.map(_.find(file => file.name == fileName && predicate.apply(file)))
   }
 
-  def findFolder(name: String, predicate: Function[VirtualFolder, Boolean]): Either[IOError, Option[VirtualFolder]] = {
+  def findFolder(name: String, predicate: Function[VirtualFolder, Boolean] = _ => true): Either[IOError, Option[VirtualFolder]] = {
     folders.right.map(_.find(folder => folder.name == name && predicate.apply(folder)))
   }
 

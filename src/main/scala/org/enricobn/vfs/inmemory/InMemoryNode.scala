@@ -34,7 +34,7 @@ extends VirtualNode {
     usersManager.checkWriteAccess(parent)
   }
 
-  final def setExecutable() = {
+  final def setExecutable(): Option[IOError] = {
     if (!usersManager.checkWriteAccess(this)) {
       "Access denied.".ioErrorO
     } else {
@@ -45,7 +45,7 @@ extends VirtualNode {
     }
   }
 
-  final def setPermissions(permissions: VirtualPermissions) = {
+  final def setPermissions(permissions: VirtualPermissions): Option[IOError] = {
     if (!usersManager.checkWriteAccess(this)) {
       "Access denied.".ioErrorO
     } else {
@@ -62,7 +62,7 @@ extends VirtualNode {
     }
   }
 
-  final def chmod(value: Int) = {
+  final def chmod(value: Int): Option[IOError] = {
     if (!usersManager.checkWriteAccess(this)) {
       "Access denied.".ioErrorO
     } else {
@@ -81,7 +81,7 @@ extends VirtualNode {
   }
 
 
-  override def chown(user: String) =
+  override def chown(user: String): Option[IOError] =
     if (!usersManager.checkWriteAccess(this)) {
       "Access denied.".ioErrorO
     } else if (!usersManager.userExists(user)) {
