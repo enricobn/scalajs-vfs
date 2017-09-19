@@ -11,15 +11,21 @@ import scala.language.reflectiveCalls
   */
 class InMemoryFolderSpec extends FlatSpec with MockFactory with Matchers {
   def fixture = {
+    val rootFolder = stub[VirtualFolder]
+    (rootFolder.path _).when().returns("/")
+
     val parent = stub[VirtualFolder]
+    (parent.root _).when().returns(rootFolder)
 
     val vum = stub[VirtualUsersManager]
     (vum.checkWriteAccess _).when(*).returns(true)
     (vum.checkExecuteAccess _).when(*).returns(true)
     (vum.checkReadAccess _).when(*).returns(true)
+
     new {
       val usersManager = vum
       val folder = new InMemoryFolder(usersManager, parent, "foo")
+      val root = rootFolder
     }
   }
 
@@ -29,6 +35,38 @@ class InMemoryFolderSpec extends FlatSpec with MockFactory with Matchers {
     val usr = f.folder.mkdir("usr").right.get
 
     assert(f.folder.resolveFolder("usr").right.get.get == usr)
+  }
+
+  "ResolveFolder with a non existent path" should "return an Right(None)" in {
+    val f = fixture
+
+    val folderE = f.folder.resolveFolder("usr")
+    assert(folderE.right.get.isEmpty)
+  }
+
+  "resolveFolderOrError with a non existent path" should "return a Left(IOError)" in {
+    val f = fixture
+
+    val folderE = f.folder.resolveFolderOrError("usr", "error")
+    assert(folderE.left.get.message == "error")
+  }
+
+  "ResolveFolder with /" should "return root" in {
+    val f = fixture
+
+    val folderE = f.folder.resolveFolder("/")
+    assert(folderE.right.get.get === f.root)
+  }
+
+  "ResolveFolder with .." should "return the parent folder" in {
+    val f = fixture
+
+    val folderE = for {
+      sub <- f.folder.mkdir("sub").right
+      parent <- sub.resolveFolder("..").right
+    } yield parent
+
+    assert(folderE.right.get.get == f.folder)
   }
 
   "chmod" should "777" in {
