@@ -89,7 +89,7 @@ class VirtualPathSpec extends FlatSpec with MockFactory with Matchers {
 
     val folder = sut.toFolder(f.fs, f.fs.root)
 
-    assert(folder.right.get.get == f.fs.root)
+    assert(folder.right.get == f.fs.root)
   }
 
 
@@ -100,7 +100,7 @@ class VirtualPathSpec extends FlatSpec with MockFactory with Matchers {
 
     val folder = sut.toFolder(f.fs, f.fs.root)
 
-    assert(folder.right.get.get.path == "/usr/bin")
+    assert(folder.right.get.path == "/usr/bin")
   }
 
   "toFolder of relative path" should "work" in {
@@ -110,7 +110,7 @@ class VirtualPathSpec extends FlatSpec with MockFactory with Matchers {
 
     val folder = sut.toFolder(f.fs, f.usr)
 
-    assert(folder.right.get.get.path == "/usr/bin")
+    assert(folder.right.get.path == "/usr/bin")
   }
 
   "toFolder of parent path" should "work" in {
@@ -120,7 +120,7 @@ class VirtualPathSpec extends FlatSpec with MockFactory with Matchers {
 
     val folder = sut.toFolder(f.fs, f.bin)
 
-    assert(folder.right.get.get.path == "/usr/bin")
+    assert(folder.right.get.path == "/usr/bin")
   }
 
   "toFolder of self" should "work" in {
@@ -130,7 +130,18 @@ class VirtualPathSpec extends FlatSpec with MockFactory with Matchers {
 
     val folder = sut.toFolder(f.fs, f.usr)
 
-    assert(folder.right.get.get.path == "/usr/bin")
+    assert(folder.right.get.path == "/usr/bin")
   }
+
+  "findFolder of not existent folder" should "return Right(None)" in {
+    val f = fixture
+
+    val sut = VirtualPath(f.fs, "home/enrico")
+
+    val folder = sut.findFolder(f.fs, f.fs.root)
+
+    assert(folder.right.get.isEmpty)
+  }
+
 
 }
