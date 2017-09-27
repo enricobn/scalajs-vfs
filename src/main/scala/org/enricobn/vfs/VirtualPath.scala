@@ -68,7 +68,9 @@ case class VirtualPath(fragments: List[PathFragment]) {
     }
 
   /**
-    * It will result in a Left(error) if the folder or the path does not exists, if you want to check that use
+    * @param currentFolder since the path could be relative you must specify the current folder. It can be
+    *                      null (at your own risk) if you are sure that it's an absolute path.
+    * @return a Left(error) if the folder or the path does not exist; if you want to check that, use
     * [[findFolder()]] instead.
     */
   def toFolder(fs: VirtualFS, currentFolder: VirtualFolder): Either[IOError,VirtualFolder] =
@@ -79,7 +81,8 @@ case class VirtualPath(fragments: List[PathFragment]) {
     }
 
   /**
-    *
+    * @param currentFolder since the path could be relative you must specify the current folder. It can be
+    *                      null (at your own risk) if you are sure that it's an absolute path.
     * @return Right(Some(folder)) if the folder exists, Right(None) if the folder or the path do not exist,
     *         Left(error) if an error occurred.
     */
