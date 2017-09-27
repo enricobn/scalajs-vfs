@@ -7,4 +7,12 @@ trait VirtualFS {
 
   def root: VirtualFolder
 
+  def rootPath: VirtualPath
+
+  def pathSeparator: String
+
+  def selfFragment: String
+
+  def parentFragment: String
+
 }

@@ -87,4 +87,5 @@ trait VirtualFolder extends VirtualNode {
       parent.root
     }
   }
+
 }

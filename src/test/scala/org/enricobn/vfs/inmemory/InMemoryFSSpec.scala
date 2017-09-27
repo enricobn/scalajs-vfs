@@ -53,4 +53,10 @@ class InMemoryFSSpec extends FlatSpec with MockFactory with Matchers {
     assert(pippo.owner == "foo")
   }
 
+  "RootPath name" should "be slash" in {
+    val f = fixture
+
+    assert(f.fs.rootPath.path(f.fs) == "/")
+  }
+
 }
