@@ -1,6 +1,6 @@
 package org.enricobn.vfs.inmemory
 
-import org.enricobn.vfs.VirtualUsersManager
+import org.enricobn.vfs.{VirtualFS, VirtualUsersManager}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -56,7 +56,7 @@ class InMemoryFSSpec extends FlatSpec with MockFactory with Matchers {
   "RootPath name" should "be slash" in {
     val f = fixture
 
-    assert(f.fs.rootPath.path(f.fs) == "/")
+    assert(VirtualFS.rootPath.path == "/")
   }
 
 }

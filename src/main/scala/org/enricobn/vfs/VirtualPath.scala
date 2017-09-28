@@ -5,11 +5,12 @@ package org.enricobn.vfs
   */
 
 object VirtualPath {
-  def apply(fs: VirtualFS, path: String): VirtualPath = {
-    if (path == fs.rootPath.path(fs))
-      return fs.rootPath
 
-    val absolute = path.startsWith(fs.pathSeparator)
+  def apply(path: String): VirtualPath = {
+    if (path == VirtualFS.rootPath.path)
+      return VirtualFS.rootPath
+
+    val absolute = path.startsWith(VirtualFS.pathSeparator)
 
     val relativePath =
       if (absolute)
@@ -23,11 +24,11 @@ object VirtualPath {
       else
         List.empty
 
-    relativePath.split(fs.pathSeparator).foreach(name => {
+    relativePath.split(VirtualFS.pathSeparator).foreach(name => {
       val fragment =
-        if (name == fs.selfFragment)
+        if (name == VirtualFS.selfFragment)
           SelfFragment()
-        else if (name == fs.parentFragment)
+        else if (name == VirtualFS.parentFragment)
           ParentFragment()
         else
           SimpleFragment(name)
@@ -41,7 +42,7 @@ object VirtualPath {
 
 case class VirtualPath(fragments: List[PathFragment]) {
 
-  def child(name: String): VirtualPath = VirtualPath(fragments ++ List(SimpleFragment(name)))
+  def child(name: String): VirtualPath = VirtualPath(fragments :+ SimpleFragment(name))
 
   def parent : Option[VirtualPath] =
     if (fragments.length == 1)
@@ -49,15 +50,15 @@ case class VirtualPath(fragments: List[PathFragment]) {
     else
       Some(VirtualPath(fragments.slice(0, fragments.length -1)))
 
-  def path(fs: VirtualFS) : String = {
+  def path : String = {
     fragments.foldLeft("")((oldValue, fragment) => {
       val prefix =
-        if (oldValue.isEmpty || oldValue == fs.root.path)
+        if (oldValue.isEmpty || oldValue == VirtualFS.rootPath.path)
           ""
         else
-          fs.pathSeparator
+          VirtualFS.pathSeparator
 
-      oldValue + prefix + fragment.toString(fs)
+      oldValue + prefix + fragment.toString
     })
   }
 
@@ -76,7 +77,7 @@ case class VirtualPath(fragments: List[PathFragment]) {
   def toFolder(fs: VirtualFS, currentFolder: VirtualFolder): Either[IOError,VirtualFolder] =
     findFolder(fs, currentFolder) match {
       case Right(Some(folder)) => Right(folder)
-      case Right(None) => Left(IOError(s"Cannot resolve path '${path(fs)}' from '$currentFolder'"))
+      case Right(None) => Left(IOError(s"Cannot resolve path '$path' from '$currentFolder'."))
       case Left(error) => Left(error)
     }
 
@@ -106,7 +107,7 @@ case class VirtualPath(fragments: List[PathFragment]) {
             case SelfFragment() => Right(Some(oldFolder))
             case ParentFragment() => Right(Some(oldFolder.parent))
             case simple: SimpleFragment => oldFolder.findFolder(simple.name)
-            case _ => Left(IOError(s"Invalid path: '${path(fs)}'"))
+            case _ => Left(IOError(s"Invalid path: '$path'"))
           }
         case n@Right(None) => n
         case error => error
@@ -115,21 +116,20 @@ case class VirtualPath(fragments: List[PathFragment]) {
 }
 
 sealed trait PathFragment {
-  def toString(fs: VirtualFS) : String
 }
 
 case class RootFragment() extends PathFragment {
-  override def toString(fs: VirtualFS): String = fs.root.path
+  override def toString: String = VirtualFS.pathSeparator
 }
 
 case class ParentFragment() extends PathFragment {
-  override def toString(fs: VirtualFS): String = fs.parentFragment
+  override def toString: String = VirtualFS.parentFragment
 }
 
 case class SelfFragment() extends PathFragment {
-  override def toString(fs: VirtualFS): String = fs.selfFragment
+  override def toString: String = VirtualFS.selfFragment
 }
 
 case class SimpleFragment(name: String) extends PathFragment {
-  override def toString(fs: VirtualFS): String = name
+  override def toString: String = name
 }

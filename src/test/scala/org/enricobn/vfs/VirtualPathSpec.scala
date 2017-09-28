@@ -1,6 +1,6 @@
 package org.enricobn.vfs
 
-import org.enricobn.vfs.inmemory.{InMemoryFS, InMemoryFolder}
+import org.enricobn.vfs.inmemory.{InMemoryFS}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -25,49 +25,39 @@ class VirtualPathSpec extends FlatSpec with MockFactory with Matchers {
   }
 
   "Root path" should "be /" in {
-    val f = fixture
+    val sut = VirtualFS.rootPath
 
-    val sut = f.fs.rootPath
-
-    assert(sut.path(f.fs) == "/")
+    assert(sut.path == "/")
   }
 
   "Simple absolute path" should "work" in {
-    val f = fixture
+    val sut = VirtualPath("/usr")
 
-    val sut = VirtualPath(f.fs, "/usr")
+    assert(sut.path == "/usr")
 
-    assert(sut.path(f.fs) == "/usr")
-
-    assert(sut.parent.get.path(f.fs) == "/")
+    assert(sut.parent.get.path == "/")
   }
 
   "Absolute path" should "work" in {
-    val f = fixture
+    val sut = VirtualPath("/usr/bin")
 
-    val sut = VirtualPath(f.fs, "/usr/bin")
+    assert(sut.path == "/usr/bin")
 
-    assert(sut.path(f.fs) == "/usr/bin")
+    assert(sut.parent.get.path== "/usr")
 
-    assert(sut.parent.get.path(f.fs)== "/usr")
-
-    assert(sut.parent.get.parent.get.path(f.fs) == "/")
+    assert(sut.parent.get.parent.get.path == "/")
   }
 
   "child" should "work" in {
-    val f = fixture
-
-    val sut = VirtualPath(f.fs, "/usr")
+    val sut = VirtualPath("/usr")
 
     val bin = sut.child("bin")
 
-    assert(bin.path(f.fs) == "/usr/bin")
+    assert(bin.path == "/usr/bin")
   }
 
   "parent" should "work" in {
-    val f = fixture
-
-    val sut = VirtualPath(f.fs, "/usr")
+    val sut = VirtualPath("/usr")
 
     val bin = sut.child("bin")
 
@@ -75,9 +65,7 @@ class VirtualPathSpec extends FlatSpec with MockFactory with Matchers {
   }
 
   "parent of root" should "be None" in {
-    val f = fixture
-
-    val sut = VirtualPath(f.fs, "/")
+    val sut = VirtualPath("/")
 
     assert(sut.parent.isEmpty)
   }
@@ -85,18 +73,17 @@ class VirtualPathSpec extends FlatSpec with MockFactory with Matchers {
   "toFolder of root" should "be root" in {
     val f = fixture
 
-    val sut = VirtualPath(f.fs, "/")
+    val sut = VirtualPath("/")
 
     val folder = sut.toFolder(f.fs, f.fs.root)
 
     assert(folder.right.get == f.fs.root)
   }
 
-
   "toFolder of absolute path" should "work" in {
     val f = fixture
 
-    val sut = VirtualPath(f.fs, "/usr/bin")
+    val sut = VirtualPath("/usr/bin")
 
     val folder = sut.toFolder(f.fs, f.fs.root)
 
@@ -106,7 +93,7 @@ class VirtualPathSpec extends FlatSpec with MockFactory with Matchers {
   "toFolder of relative path" should "work" in {
     val f = fixture
 
-    val sut = VirtualPath(f.fs, "bin")
+    val sut = VirtualPath("bin")
 
     val folder = sut.toFolder(f.fs, f.usr)
 
@@ -116,7 +103,7 @@ class VirtualPathSpec extends FlatSpec with MockFactory with Matchers {
   "toFolder of parent path" should "work" in {
     val f = fixture
 
-    val sut = VirtualPath(f.fs, "../bin")
+    val sut = VirtualPath("../bin")
 
     val folder = sut.toFolder(f.fs, f.bin)
 
@@ -126,7 +113,7 @@ class VirtualPathSpec extends FlatSpec with MockFactory with Matchers {
   "toFolder of self" should "work" in {
     val f = fixture
 
-    val sut = VirtualPath(f.fs, "./bin")
+    val sut = VirtualPath("./bin")
 
     val folder = sut.toFolder(f.fs, f.usr)
 
@@ -136,11 +123,21 @@ class VirtualPathSpec extends FlatSpec with MockFactory with Matchers {
   "findFolder of not existent folder" should "return Right(None)" in {
     val f = fixture
 
-    val sut = VirtualPath(f.fs, "home/enrico")
+    val sut = VirtualPath("home/enrico")
 
     val folder = sut.findFolder(f.fs, f.fs.root)
 
     assert(folder.right.get.isEmpty)
+  }
+
+  "toFolder of absolute path" should "work from fragments" in {
+    val f = fixture
+
+    val sut = VirtualPath(List(RootFragment(), SimpleFragment("usr"), SimpleFragment("bin")))
+
+    val folder = sut.toFolder(f.fs, f.fs.root)
+
+    assert(folder.right.get.path == "/usr/bin")
   }
 
 

@@ -12,13 +12,6 @@ import scala.scalajs.js.annotation.{JSExport, JSExportAll}
 @JSExportAll
 class InMemoryFS(usersManager: VirtualUsersManager) extends VirtualFS {
 
-  val root = new InMemoryFolder(usersManager, null, "/")
+  val root = new InMemoryFolder(usersManager, null, VirtualFS.rootPath.path)
 
-  override def rootPath: VirtualPath = VirtualPath(List(RootFragment()))
-
-  override def pathSeparator: String = "/"
-
-  override def selfFragment: String = "."
-
-  override def parentFragment: String = ".."
 }
