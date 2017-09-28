@@ -10,7 +10,8 @@ import scala.language.reflectiveCalls
   * Created by enrico on 12/5/16.
   */
 class InMemoryFolderSpec extends FlatSpec with MockFactory with Matchers {
-  def fixture = {
+
+  private def fixture = {
     val rootFolder = stub[VirtualFolder]
     (rootFolder.path _).when().returns("/")
 
@@ -23,9 +24,9 @@ class InMemoryFolderSpec extends FlatSpec with MockFactory with Matchers {
     (vum.checkReadAccess _).when(*).returns(true)
 
     new {
-      val usersManager = vum
+      val usersManager: VirtualUsersManager = vum
       val folder = new InMemoryFolder(usersManager, parent, "foo")
-      val root = rootFolder
+      val root: VirtualFolder = rootFolder
     }
   }
 

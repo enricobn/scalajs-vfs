@@ -11,7 +11,7 @@ import scala.language.reflectiveCalls
   */
 class InMemoryFSSpec extends FlatSpec with MockFactory with Matchers {
 
-  def fixture = {
+  private def fixture = {
     val vum = stub[VirtualUsersManager]
     (vum.checkWriteAccess _).when(*).returns(true)
     (vum.checkExecuteAccess _).when(*).returns(true)
