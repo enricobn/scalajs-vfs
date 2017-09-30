@@ -42,9 +42,13 @@ object VirtualPath {
 
 case class VirtualPath(fragments: List[PathFragment]) {
 
-  def andThen(name: String): VirtualPath = andThen(SimpleFragment(name))
+  def toParentFolder: VirtualPath = andThen(ParentFragment())
+
+  def andThen(path: String): VirtualPath = andThen(VirtualPath(path))
 
   def andThen(fragment: PathFragment): VirtualPath = VirtualPath(fragments :+ fragment)
+
+  def andThen(path: VirtualPath): VirtualPath = VirtualPath(fragments ++ path.fragments)
 
   private def parentFragments : Option[VirtualPath] =
     if (fragments.length == 1)

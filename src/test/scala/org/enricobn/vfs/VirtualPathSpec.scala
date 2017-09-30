@@ -45,10 +45,26 @@ class VirtualPathSpec extends FlatSpec with MockFactory with Matchers {
     assert(sut.path == "/usr/bin")
   }
 
-  "andThen" should "work" in {
+  "andThen with fragment" should "work" in {
+    val sut = VirtualPath("/usr")
+
+    val bin = sut.andThen(SimpleFragment("bin"))
+
+    assert(bin.path == "/usr/bin")
+  }
+
+  "andThen with path as String" should "work" in {
     val sut = VirtualPath("/usr")
 
     val bin = sut.andThen("bin")
+
+    assert(bin.path == "/usr/bin")
+  }
+
+  "andThen with path as VirtualPath" should "work" in {
+    val sut = VirtualPath("/usr")
+
+    val bin = sut.andThen(VirtualPath("bin"))
 
     assert(bin.path == "/usr/bin")
   }

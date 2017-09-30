@@ -2,3 +2,9 @@ NEXT
 -----
 - VirtualNode chown, chgrp
 - sbt: tests on publish
+
+DONE
+-----
+- more robust VirtualPath.andThen(String)
+- VirtualPath.andThen(PathFragment)
+- VirtualPath.andThen(VirtualPath)
