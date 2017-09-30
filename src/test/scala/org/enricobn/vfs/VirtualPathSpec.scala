@@ -69,6 +69,14 @@ class VirtualPathSpec extends FlatSpec with MockFactory with Matchers {
     assert(bin.path == "/usr/bin")
   }
 
+  "toParentFolder" should "work" in {
+    val sut = VirtualPath("/usr/bin")
+
+    val usr = sut.toParentFolder
+
+    assert(usr.path == "/usr")
+  }
+
   "toFolder of root" should "be root" in {
     val f = fixture
 
