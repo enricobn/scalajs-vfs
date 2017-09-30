@@ -6,6 +6,8 @@ package org.enricobn.vfs
 
 object VirtualFS {
 
+  def root: String = "/"
+
   def pathSeparator: String = "/"
 
   def selfFragment: String = "."

@@ -6,7 +6,7 @@ import IOError._
 /**
   * Created by enrico on 12/2/16.
   */
-class InMemoryFolder private[inmemory] (usersManager: VirtualUsersManager, parent: VirtualFolder, name: String)
+class InMemoryFolder private[inmemory] (usersManager: VirtualUsersManager, parent: Option[VirtualFolder], name: String)
 extends InMemoryNode(usersManager, parent, name)
 with VirtualFolder {
   private val _files = new scala.collection.mutable.HashSet[VirtualFile]
@@ -46,7 +46,7 @@ with VirtualFolder {
         }
       })
       .toLeft({
-        val folder = new InMemoryFolder(usersManager, this, name)
+        val folder = new InMemoryFolder(usersManager, Some(this), name)
         _folders.add(folder)
         folder
       })
@@ -74,7 +74,7 @@ with VirtualFolder {
     checkCreate(name) match {
       case Some(error) => error.message.ioErrorE
       case _ =>
-        val file: InMemoryFile = new InMemoryFile (usersManager, this, name)
+        val file: InMemoryFile = new InMemoryFile (usersManager, Some(this), name)
         _files.add (file)
         Right(file)
     }

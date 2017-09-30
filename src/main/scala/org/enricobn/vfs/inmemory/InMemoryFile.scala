@@ -7,7 +7,7 @@ import org.enricobn.vfs.IOError._
   * Created by enrico on 12/2/16.
   */
 
-class InMemoryFile private[inmemory] (usersManager: VirtualUsersManager, parent: InMemoryFolder, name: String)
+class InMemoryFile private[inmemory] (usersManager: VirtualUsersManager, parent: Option[InMemoryFolder], name: String)
 extends InMemoryNode(usersManager, parent, name) with VirtualFile {
   private var _content: AnyRef = ""
 

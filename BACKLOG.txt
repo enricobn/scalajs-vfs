@@ -1,0 +1,4 @@
+NEXT
+-----
+- VirtualNode chown, chgrp
+- sbt: tests on publish

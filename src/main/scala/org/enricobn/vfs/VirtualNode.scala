@@ -11,7 +11,7 @@ import IOError._
 trait VirtualNode {
   def name: String
 
-  def parent: VirtualFolder
+  def parent: Option[VirtualFolder]
 
   def owner: String
 
@@ -25,17 +25,15 @@ trait VirtualNode {
 
   def chown(owner: String) : Option[IOError]
 
-  def path: String = {
-    if (parent != null) {
-      if (parent.parent != null) {
-        return parent.path + "/" + name
-      }
-      else {
-        return "/" + name
-      }
-    }
-    "/"
-  }
+  lazy val path: String =
+    if (parent.isDefined)
+        if (parent.get.parent.isDefined)
+          parent.get.path + VirtualFS.pathSeparator + name
+        else
+          VirtualFS.root + name
+    else
+      VirtualFS.root
+
 
   def getCurrentUserPermission : VirtualPermission
 

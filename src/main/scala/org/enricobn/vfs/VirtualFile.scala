@@ -5,6 +5,7 @@ package org.enricobn.vfs
   */
 //@JSExportAll
 trait VirtualFile extends VirtualNode {
+
   def content: Either[IOError, AnyRef]
 
   def content_=(content: AnyRef) : Option[IOError]

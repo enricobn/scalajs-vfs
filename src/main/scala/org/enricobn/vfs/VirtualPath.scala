@@ -42,9 +42,11 @@ object VirtualPath {
 
 case class VirtualPath(fragments: List[PathFragment]) {
 
-  def child(name: String): VirtualPath = VirtualPath(fragments :+ SimpleFragment(name))
+  def andThen(name: String): VirtualPath = andThen(SimpleFragment(name))
 
-  def parent : Option[VirtualPath] =
+  def andThen(fragment: PathFragment): VirtualPath = VirtualPath(fragments :+ fragment)
+
+  private def parentFragments : Option[VirtualPath] =
     if (fragments.length == 1)
       None
     else
@@ -94,7 +96,7 @@ case class VirtualPath(fragments: List[PathFragment]) {
         case Right(Some(oldFolder)) =>
           fragment match {
             case SelfFragment() => Right(Some(oldFolder))
-            case ParentFragment() => Right(Some(oldFolder.parent))
+            case ParentFragment() => Right(oldFolder.parent)
             case simple: SimpleFragment => oldFolder.findFolder(simple.name)
             case _ => Left(IOError(s"Invalid path: '$path'"))
           }
@@ -106,7 +108,7 @@ case class VirtualPath(fragments: List[PathFragment]) {
   /**
     * @param currentFolder since the path could be relative you must specify the current folder.
     * @return a Left(error) if the folder or the path does not exist; if you want to check that, use
-    * [[findFolder()]] instead.
+    * [[VirtualPath.findFolder]] instead.
     */
   def toFolder(currentFolder: VirtualFolder): Either[IOError,VirtualFolder] =
     findFolder(currentFolder) match {
@@ -120,25 +122,20 @@ case class VirtualPath(fragments: List[PathFragment]) {
     * @return Right(Some(file)) if the file exists, Right(None) if the file or the path do not exist,
     *         Left(error) if an error occurred.
     */
-  def findFile(currentFolder: VirtualFolder): Either[IOError,Option[VirtualFile]] = {
-    val parent =
-      if (this.parent.isEmpty) {
-        this
-      } else {
-        this.parent.get
+  def findFile(currentFolder: VirtualFolder): Either[IOError,Option[VirtualFile]] =
+    if (parentFragments.isEmpty)
+      currentFolder.findFile(this.name)
+    else
+      parentFragments.get.findFolder(currentFolder) match {
+        case Right(Some(folder)) => folder.findFile(name)
+        case Right(None) => Right(None)
+        case Left(error) => Left(error)
       }
-
-    parent.findFolder(currentFolder) match {
-      case Right(Some(folder)) => folder.findFile(name)
-      case Right(None) => Right(None)
-      case Left(error) => Left(error)
-    }
-  }
 
   /**
     * @param currentFolder since the path could be relative you must specify the current folder.
     * @return a Left(error) if the file or the path does not exist; if you want to check that, use
-    * [[findFile()]] instead.
+    * [[VirtualPath.findFile]] instead.
     */
   def toFile(currentFolder: VirtualFolder): Either[IOError,VirtualFile] =
     findFile(currentFolder) match {
@@ -149,8 +146,7 @@ case class VirtualPath(fragments: List[PathFragment]) {
 
 }
 
-sealed trait PathFragment {
-}
+sealed trait PathFragment
 
 case class RootFragment() extends PathFragment {
   override def toString: String = VirtualFS.pathSeparator
@@ -164,6 +160,12 @@ case class SelfFragment() extends PathFragment {
   override def toString: String = VirtualFS.selfFragment
 }
 
-case class SimpleFragment(name: String) extends PathFragment {
+case class SimpleFragment private (name: String) extends PathFragment {
+
+  if (name.contains(VirtualFS.pathSeparator)) {
+    //I like more Either, but this constructor will not be used from clients.
+    throw new IllegalArgumentException("Illegal characters in name.")
+  }
+
   override def toString: String = name
 }

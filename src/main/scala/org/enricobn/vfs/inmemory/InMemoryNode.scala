@@ -3,7 +3,6 @@ package org.enricobn.vfs.inmemory
 import org.enricobn.vfs._
 
 import scala.collection.immutable.BitSet
-
 import IOError._
 
 /**
@@ -19,7 +18,7 @@ object InMemoryNode {
     }
   }
 }
-class InMemoryNode private[inmemory] (val usersManager: VirtualUsersManager, val parent: VirtualFolder, val name: String)
+class InMemoryNode private[inmemory] (val usersManager: VirtualUsersManager, val parent: Option[VirtualFolder], val name: String)
 extends VirtualNode {
   import InMemoryNode._
 
@@ -30,8 +29,8 @@ extends VirtualNode {
 
   final def permissions: InMemoryPermissions = _permissions
 
-  if (usersManager.currentUser != VirtualUsersManager.ROOT) {
-    usersManager.checkWriteAccess(parent)
+  if (usersManager.currentUser != VirtualUsersManager.ROOT && parent.isDefined) {
+    usersManager.checkWriteAccess(parent.get)
   }
 
   final def setExecutable(): Option[IOError] = {
