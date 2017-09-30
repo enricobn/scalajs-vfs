@@ -72,15 +72,14 @@ case class VirtualPath(fragments: List[PathFragment]) {
     }
 
   /**
-    * @param currentFolder since the path could be relative you must specify the current folder. It can be
-    *                      null (at your own risk) if you are sure that it's an absolute path.
+    * @param currentFolder since the path could be relative you must specify the current folder.
     * @return Right(Some(folder)) if the folder exists, Right(None) if the folder or the path do not exist,
     *         Left(error) if an error occurred.
     */
-  def findFolder(fs: VirtualFS, currentFolder: VirtualFolder): Either[IOError,Option[VirtualFolder]] = {
+  def findFolder(currentFolder: VirtualFolder): Either[IOError,Option[VirtualFolder]] = {
     val first: Either[IOError, Option[VirtualFolder]] =
       fragments.head match {
-        case RootFragment() => Right(Some(fs.root))
+        case RootFragment() => Right(Some(currentFolder.root))
         case _ => Right(Some(currentFolder))
       }
 
@@ -105,25 +104,23 @@ case class VirtualPath(fragments: List[PathFragment]) {
   }
 
   /**
-    * @param currentFolder since the path could be relative you must specify the current folder. It can be
-    *                      null (at your own risk) if you are sure that it's an absolute path.
+    * @param currentFolder since the path could be relative you must specify the current folder.
     * @return a Left(error) if the folder or the path does not exist; if you want to check that, use
     * [[findFolder()]] instead.
     */
-  def toFolder(fs: VirtualFS, currentFolder: VirtualFolder): Either[IOError,VirtualFolder] =
-    findFolder(fs, currentFolder) match {
+  def toFolder(currentFolder: VirtualFolder): Either[IOError,VirtualFolder] =
+    findFolder(currentFolder) match {
       case Right(Some(folder)) => Right(folder)
       case Right(None) => Left(IOError(s"Cannot resolve path '$path' from '$currentFolder'."))
       case Left(error) => Left(error)
     }
 
   /**
-    * @param currentFolder since the path could be relative you must specify the current folder. It can be
-    *                      null (at your own risk) if you are sure that it's an absolute path.
+    * @param currentFolder since the path could be relative you must specify the current folder.
     * @return Right(Some(file)) if the file exists, Right(None) if the file or the path do not exist,
     *         Left(error) if an error occurred.
     */
-  def findFile(fs: VirtualFS, currentFolder: VirtualFolder): Either[IOError,Option[VirtualFile]] = {
+  def findFile(currentFolder: VirtualFolder): Either[IOError,Option[VirtualFile]] = {
     val parent =
       if (this.parent.isEmpty) {
         this
@@ -131,7 +128,7 @@ case class VirtualPath(fragments: List[PathFragment]) {
         this.parent.get
       }
 
-    parent.findFolder(fs, currentFolder) match {
+    parent.findFolder(currentFolder) match {
       case Right(Some(folder)) => folder.findFile(name)
       case Right(None) => Right(None)
       case Left(error) => Left(error)
@@ -139,13 +136,12 @@ case class VirtualPath(fragments: List[PathFragment]) {
   }
 
   /**
-    * @param currentFolder since the path could be relative you must specify the current folder. It can be
-    *                      null (at your own risk) if you are sure that it's an absolute path.
+    * @param currentFolder since the path could be relative you must specify the current folder.
     * @return a Left(error) if the file or the path does not exist; if you want to check that, use
     * [[findFile()]] instead.
     */
-  def toFile(fs: VirtualFS, currentFolder: VirtualFolder): Either[IOError,VirtualFile] =
-    findFile(fs, currentFolder) match {
+  def toFile(currentFolder: VirtualFolder): Either[IOError,VirtualFile] =
+    findFile(currentFolder) match {
       case Right(Some(file)) => Right(file)
       case Right(None) => Left(IOError(s"Cannot resolve file '$path' from '$currentFolder'"))
       case Left(error) => Left(error)

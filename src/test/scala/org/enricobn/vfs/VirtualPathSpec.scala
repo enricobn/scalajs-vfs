@@ -78,7 +78,7 @@ class VirtualPathSpec extends FlatSpec with MockFactory with Matchers {
 
     val sut = VirtualPath("/")
 
-    val folder = sut.toFolder(f.fs, f.fs.root)
+    val folder = sut.toFolder(f.fs.root)
 
     assert(folder.right.get == f.fs.root)
   }
@@ -88,7 +88,7 @@ class VirtualPathSpec extends FlatSpec with MockFactory with Matchers {
 
     val sut = VirtualPath("/usr/bin")
 
-    val folder = sut.toFolder(f.fs, f.fs.root)
+    val folder = sut.toFolder(f.fs.root)
 
     assert(folder.right.get == f.bin)
   }
@@ -98,7 +98,7 @@ class VirtualPathSpec extends FlatSpec with MockFactory with Matchers {
 
     val sut = VirtualPath("bin")
 
-    val folder = sut.toFolder(f.fs, f.usr)
+    val folder = sut.toFolder(f.usr)
 
     assert(folder.right.get == f.bin)
   }
@@ -108,7 +108,7 @@ class VirtualPathSpec extends FlatSpec with MockFactory with Matchers {
 
     val sut = VirtualPath("../bin")
 
-    val folder = sut.toFolder(f.fs, f.bin)
+    val folder = sut.toFolder(f.bin)
 
     assert(folder.right.get == f.bin)
   }
@@ -118,7 +118,7 @@ class VirtualPathSpec extends FlatSpec with MockFactory with Matchers {
 
     val sut = VirtualPath("./bin")
 
-    val folder = sut.toFolder(f.fs, f.usr)
+    val folder = sut.toFolder(f.usr)
 
     assert(folder.right.get == f.bin)
   }
@@ -128,7 +128,7 @@ class VirtualPathSpec extends FlatSpec with MockFactory with Matchers {
 
     val sut = VirtualPath("home/enrico")
 
-    val folder = sut.findFolder(f.fs, f.fs.root)
+    val folder = sut.findFolder(f.fs.root)
 
     assert(folder.right.get.isEmpty)
   }
@@ -138,7 +138,7 @@ class VirtualPathSpec extends FlatSpec with MockFactory with Matchers {
 
     val sut = VirtualPath(List(RootFragment(), SimpleFragment("usr"), SimpleFragment("bin")))
 
-    val folder = sut.toFolder(f.fs, f.fs.root)
+    val folder = sut.toFolder(f.fs.root)
 
     assert(folder.right.get == f.bin)
   }
@@ -148,7 +148,7 @@ class VirtualPathSpec extends FlatSpec with MockFactory with Matchers {
 
     val sut = VirtualPath("/usr/bin/binFile")
 
-    val file = sut.toFile(f.fs, f.fs.root)
+    val file = sut.toFile(f.fs.root)
 
     assert(f.binFile == file.right.get)
   }
@@ -158,7 +158,7 @@ class VirtualPathSpec extends FlatSpec with MockFactory with Matchers {
 
     val sut = VirtualPath("/rootFile")
 
-    val file = sut.toFile(f.fs, f.fs.root)
+    val file = sut.toFile(f.fs.root)
 
     assert(f.rootFile == file.right.get)
   }
@@ -168,7 +168,7 @@ class VirtualPathSpec extends FlatSpec with MockFactory with Matchers {
 
     val sut = VirtualPath("../usrFile")
 
-    val file = sut.toFile(f.fs, f.bin)
+    val file = sut.toFile(f.bin)
 
     assert(f.usrFile == file.right.get)
   }
