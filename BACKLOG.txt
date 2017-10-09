@@ -5,6 +5,7 @@ NEXT
 
 DONE
 -----
+- VirtualPath.toParentFolder
 - more robust VirtualPath.andThen(String)
 - VirtualPath.andThen(PathFragment)
 - VirtualPath.andThen(VirtualPath)

@@ -50,7 +50,7 @@ case class VirtualPath(fragments: List[PathFragment]) {
 
   def andThen(path: VirtualPath): VirtualPath = VirtualPath(fragments ++ path.fragments)
 
-  private def parentFragments : Option[VirtualPath] =
+  def parentFragments : Option[VirtualPath] =
     if (fragments.length == 1)
       None
     else
