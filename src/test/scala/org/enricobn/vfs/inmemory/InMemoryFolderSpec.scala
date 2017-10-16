@@ -47,11 +47,11 @@ class InMemoryFolderSpec extends FlatSpec with MockFactory with Matchers {
     assert(folderE.left.get.message == "error")
   }
 
-  "ResolveFolder with /" should "return root" in {
+  "ResolveFolder with /" should "return an error" in {
     val f = fixture
 
     val folderE = f.sut.resolveFolder("/")
-    assert(folderE.right.get.get === f.root)
+    assert(folderE.isLeft)
   }
 
   "ResolveFolder with .." should "returns the parent folder" in {

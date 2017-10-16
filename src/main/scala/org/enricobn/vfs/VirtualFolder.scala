@@ -50,11 +50,27 @@ trait VirtualFolder extends VirtualNode {
     folders.right.map(_.filter(predicate))
 
   /**
-    * Resolves the given path relative to this folder
+    * Resolves the given path relative to this folder. It MUST be a relative path.
     * @return Left(IOError) if an error arises, Right(Some(folder)) if folder found or Right(None) if no folder is found.
     */
-  def resolveFolder(path: String): Either[IOError, Option[VirtualFolder]] =
-    VirtualPath(path).findFolder(this)
+  def resolveFolder(path: String): Either[IOError, Option[VirtualFolder]] = {
+    val virtualPath = VirtualPath(path)
+
+    val folderE : Either[IOError, Option[VirtualFolder]] = Right(Some(this))
+
+    virtualPath.fragments.foldLeft(folderE)((actualFolderE, fragment) =>
+      actualFolderE match {
+        case Right(Some(actualFolder)) =>
+          fragment match {
+            case SelfFragment() => Right(Some(actualFolder))
+            case ParentFragment() => Right(actualFolder.parent)
+            case simple: SimpleFragment => actualFolder.findFolder(simple.name)
+            case _ => Left(IOError(s"Invalid path: '$path'"))
+          }
+        case n@Right(None) => n
+        case error => error
+      })
+  }
 
   /**
     * resolves the given path relative to this folder.

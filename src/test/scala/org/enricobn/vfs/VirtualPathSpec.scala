@@ -76,171 +76,19 @@ class VirtualPathSpec extends FlatSpec with MockFactory with Matchers {
 
     val usr = sut.toParentFolder
 
-    assert(usr.toFolder(f.bin).right.get.path == "/usr")
+    assert(usr.path == "/usr/bin/..")
   }
 
-  "toFolder of root" should "be root" in {
-    val f = fixture
-
-    val sut = VirtualPath("/")
-
-    val folder = sut.toFolder(f.fs.root)
-
-    assert(folder.right.get == f.fs.root)
-  }
-
-  "toFolder of absolute path" should "work" in {
-    val f = fixture
-
-    val sut = VirtualPath("/usr/bin")
-
-    val folder = sut.toFolder(f.fs.root)
-
-    assert(folder.right.get == f.bin)
-  }
-
-  "toFolder of relative path" should "work" in {
-    val f = fixture
-
-    val sut = VirtualPath("bin")
-
-    val folder = sut.toFolder(f.usr)
-
-    assert(folder.right.get == f.bin)
-  }
-
-  "toFolder of parent path" should "work" in {
-    val f = fixture
-
-    val sut = VirtualPath("../bin")
-
-    val folder = sut.toFolder(f.bin)
-
-    assert(folder.right.get == f.bin)
-  }
-
-  "toFolder of self" should "work" in {
-    val f = fixture
-
-    val sut = VirtualPath("./bin")
-
-    val folder = sut.toFolder(f.usr)
-
-    assert(folder.right.get == f.bin)
-  }
-
-  "findFolder of not existent folder" should "return Right(None)" in {
-    val f = fixture
-
-    val sut = VirtualPath("home/enrico")
-
-    val folder = sut.findFolder(f.fs.root)
-
-    assert(folder.right.get.isEmpty)
-  }
-
-  "toFolder of absolute path" should "work from fragments" in {
+  "absolute path" should "work from fragments" in {
     val f = fixture
 
     val sut = VirtualPath(List(RootFragment(), SimpleFragment("usr"), SimpleFragment("bin")))
 
-    val folder = sut.toFolder(f.fs.root)
-
-    assert(folder.right.get == f.bin)
-  }
-
-  "toFile of absolute path" should "work" in {
-    val f = fixture
-
-    val sut = VirtualPath("/usr/bin/binFile")
-
-    val file = sut.toFile(f.fs.root)
-
-    assert(f.binFile == file.right.get)
-  }
-
-  "toFile of root file" should "work" in {
-    val f = fixture
-
-    val sut = VirtualPath("/rootFile")
-
-    val file = sut.toFile(f.fs.root)
-
-    assert(f.rootFile == file.right.get)
-  }
-
-  "toFile of relative path" should "work" in {
-    val f = fixture
-
-    val sut = VirtualPath("../usrFile")
-
-    val file = sut.toFile(f.bin)
-
-    assert(f.usrFile == file.right.get)
-  }
-
-  "findFile of parent of root" should "return Right(None)" in {
-    val f = fixture
-
-    val sut = VirtualPath("..")
-
-    val file = sut.findFile(f.fs.root)
-
-    assert(Right(None) == file)
-  }
-
-
-  "findFile of parent of parent of root" should "return Right(None)" in {
-    val f = fixture
-
-    val sut = VirtualPath("../..")
-
-    val file = sut.findFile(f.fs.root)
-
-    assert(Right(None) == file)
-  }
-
-  "findFolder of ../.. of usr" should "return Right(None)" in {
-    val f = fixture
-
-    val sut = VirtualPath("../..")
-
-    val file = sut.findFolder(f.usr)
-
-    assert(Right(None) == file)
-  }
-
-  "findFolder of ../.. of bin" should "return root" in {
-    val f = fixture
-
-    val sut = VirtualPath("../..")
-
-    val file = sut.findFolder(f.bin)
-
-    assert(Right(Some(f.fs.root)) == file)
-  }
-
-  "findFile of ../../usr/bin/binFile from bin" should "return binFile" in {
-    val f = fixture
-
-    val sut = VirtualPath("../../usr/bin/binFile")
-
-    val file = sut.findFile(f.bin)
-
-    assert(Right(Some(f.binFile)) == file)
+    assert(sut.path == "/usr/bin")
   }
 
   "..." should "not throw an exception" in {
     val sut = VirtualPath("../.../")
-  }
-
-  "find of ../..." should "not work, but don't throw an Exception" in {
-    val f = fixture
-
-    val sut = VirtualPath("../.../")
-    val file = sut.findFile(f.bin)
-
-    assert(Right(None) == file)
   }
 
 }
