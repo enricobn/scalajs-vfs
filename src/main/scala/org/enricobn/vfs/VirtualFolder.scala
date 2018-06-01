@@ -22,6 +22,8 @@ trait VirtualFolder extends VirtualNode {
 
   def rename(name: String) : Option[IOError]
 
+  def createFile(name: String, content: AnyRef) : Either[IOError, VirtualFile]
+
   def findFile(fileName: String): Either[IOError, Option[VirtualFile]] = {
     files.right.map(_.find(_.name == fileName))
   }

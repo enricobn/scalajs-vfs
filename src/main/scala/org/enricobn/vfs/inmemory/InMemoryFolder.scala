@@ -84,6 +84,12 @@ with VirtualFolder {
     "Unsupported operation".ioErrorO
   }
 
+  override def createFile(name: String, content: AnyRef): Either[IOError, VirtualFile] =
+    for {
+      createdFile <- touch(name).right
+      file <- (createdFile.content = content).toLeft(createdFile).right
+    } yield file
+
   private def checkCreate(name: String) : Option[IOError] = {
     if (!usersManager.checkWriteAccess(this)) {
       "Access denied.".ioErrorO
