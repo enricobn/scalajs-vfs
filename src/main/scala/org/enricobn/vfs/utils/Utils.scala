@@ -8,13 +8,13 @@ import scala.collection.GenTraversableOnce
 object Utils {
 
   def lift[L,R](xs: GenTraversableOnce[Either[L, R]]) : Either[L, List[R]] =
-    xs.foldRight(Right(List.empty[R]) : Either[L, List[R]]) { (value, result) => {
+    xs.foldLeft(Right(List.empty[R]) : Either[L, List[R]]) { (result, value) => {
       result match {
         case Left(l) => result
         case Right(r) =>
           value match {
             case Left(l) => Left(l)
-            case Right(r1) => Right(r1 :: r)
+            case Right(r1) => Right(r :+ r1)
           }
       }
     }}
