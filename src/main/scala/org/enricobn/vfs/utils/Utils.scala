@@ -20,6 +20,7 @@ object Utils {
     }}
 
   def lift[T](xs: GenTraversableOnce[Option[T]]) : Option[List[T]] = {
+    // I use foldRight since v :: l is faster than l :+ v
     xs.foldRight(Some(List.empty) : Option[List[T]])((value, result) => {
       result match {
         case Some(l) =>

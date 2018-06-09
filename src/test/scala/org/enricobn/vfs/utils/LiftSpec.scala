@@ -64,8 +64,8 @@ class LiftSpec extends FlatSpec with MockFactory with Matchers {
     assert(lift(example) == Right(List(1,2)))
   }
 
-  "lifting left and right" should "return left" in {
-    val example = List(Left("error"), Right(1))
+  "lifting lefts and rights" should "return the first left" in {
+    val example = List(Left("error"), Right(1), Left("error1"))
 
     assert(lift(example) == Left("error"))
   }

@@ -19,14 +19,14 @@ with VirtualFolder {
 
   private def checkExecuteAccess() : Option[IOError] =
     if (!usersManager.checkExecuteAccess(this)) {
-      "Access denied.".ioErrorO
+      accessDenied("check execute access")
     } else {
       None
     }
 
   private def checkWriteAccess() : Option[IOError] =
     if (!usersManager.checkWriteAccess(this)) {
-      "Access denied.".ioErrorO
+     accessDenied("check write access")
     } else {
       None
     }
@@ -92,9 +92,9 @@ with VirtualFolder {
 
   private def checkCreate(name: String) : Option[IOError] = {
     if (!usersManager.checkWriteAccess(this)) {
-      "Access denied.".ioErrorO
+      accessDenied(s"touch $name for write access")
     } else if (!usersManager.checkExecuteAccess(this)) {
-      "Access denied.".ioErrorO
+      accessDenied(s"touch $name for execute access")
     } else if (_folders.exists(folder => folder.name == name) || _files.exists(file => file.name == name)) {
       ("touch: cannot create file ‘" + name + "’: File exists").ioErrorO
     } else {

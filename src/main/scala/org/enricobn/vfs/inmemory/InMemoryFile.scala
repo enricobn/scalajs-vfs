@@ -13,14 +13,14 @@ extends InMemoryNode(usersManager, parent, name) with VirtualFile {
 
   final def content: Either[IOError, AnyRef] =
     if (!usersManager.checkReadAccess(this)) {
-      "Access denied.".ioErrorE
+      Left(accessDenied("content read").get)
     } else {
         Right(_content)
     }
 
   final def content_=(content: AnyRef): Option[IOError] =
     if (!usersManager.checkWriteAccess(this)) {
-      "Access denied.".ioErrorO
+      accessDenied("content write")
     } else {
       this._content = content
       None

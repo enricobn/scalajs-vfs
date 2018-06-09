@@ -30,12 +30,13 @@ extends VirtualNode {
   final def permissions: InMemoryPermissions = _permissions
 
   if (usersManager.currentUser != VirtualUsersManager.ROOT && parent.isDefined) {
+    // TODO it does nothing: it does not throw an exception, it returns a boolean!!!
     usersManager.checkWriteAccess(parent.get)
   }
 
   final def setExecutable(): Option[IOError] = {
     if (!usersManager.checkWriteAccess(this)) {
-      "Access denied.".ioErrorO
+      accessDenied("set executable")
     } else {
       _permissions.owner.execute = true
       _permissions.group.execute = true
@@ -46,7 +47,7 @@ extends VirtualNode {
 
   final def setPermissions(permissions: VirtualPermissions): Option[IOError] = {
     if (!usersManager.checkWriteAccess(this)) {
-      "Access denied.".ioErrorO
+      accessDenied("set permissions")
     } else {
       _permissions.owner.read = permissions.owner.read
       _permissions.owner.write = permissions.owner.write
@@ -63,7 +64,7 @@ extends VirtualNode {
 
   final def chmod(value: Int): Option[IOError] = {
     if (!usersManager.checkWriteAccess(this)) {
-      "Access denied.".ioErrorO
+      accessDenied("chmod")
     } else {
       val mask = BitSet.fromBitMask(Array(fromOctal(value)))
       _permissions.owner.read = mask(8)
@@ -79,12 +80,11 @@ extends VirtualNode {
     }
   }
 
-
   override def chown(user: String): Option[IOError] =
     if (!usersManager.checkWriteAccess(this)) {
-      "Access denied.".ioErrorO
+      accessDenied("chown")
     } else if (!usersManager.userExists(user)) {
-      "User not defined.".ioErrorO
+      s"chown of $this : user '$user' not defined.".ioErrorO
     } else {
       _owner = user
       None
@@ -97,6 +97,10 @@ extends VirtualNode {
     } else {
       _permissions.others
     }
+  }
+
+  protected def accessDenied(prefix: String): Some[IOError] = {
+    Some(IOError(s"$prefix of $this for user ${usersManager.currentUser}: access denied."))
   }
 
 }
