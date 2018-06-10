@@ -1,13 +1,13 @@
 package org.enricobn.vfs.inmemory
 
+import org.enricobn.vfs.IOError._
 import org.enricobn.vfs._
-import IOError._
 
 /**
   * Created by enrico on 12/2/16.
   */
-class InMemoryFolder private[inmemory] (usersManager: VirtualUsersManager, parent: Option[VirtualFolder], name: String)
-extends InMemoryNode(usersManager, parent, name)
+class InMemoryFolder private[inmemory] (vum: VirtualUsersManager, vsm: VirtualSecurityManager, parent: Option[VirtualFolder], name: String)
+extends InMemoryNode(vum, vsm, parent, name)
 with VirtualFolder {
   private val _files = new scala.collection.mutable.HashSet[VirtualFile]
   private val _folders = new scala.collection.mutable.HashSet[InMemoryFolder]
@@ -18,14 +18,14 @@ with VirtualFolder {
   }
 
   private def checkExecuteAccess() : Option[IOError] =
-    if (!usersManager.checkExecuteAccess(this)) {
+    if (!vsm.checkExecuteAccess(this)) {
       accessDenied("check execute access")
     } else {
       None
     }
 
   private def checkWriteAccess() : Option[IOError] =
-    if (!usersManager.checkWriteAccess(this)) {
+    if (!vsm.checkWriteAccess(this)) {
      accessDenied("check write access")
     } else {
       None
@@ -46,7 +46,7 @@ with VirtualFolder {
         }
       })
       .toLeft({
-        val folder = new InMemoryFolder(usersManager, Some(this), name)
+        val folder = new InMemoryFolder(vum, vsm, Some(this), name)
         _folders.add(folder)
         folder
       })
@@ -74,7 +74,7 @@ with VirtualFolder {
     checkCreate(name) match {
       case Some(error) => error.message.ioErrorE
       case _ =>
-        val file: InMemoryFile = new InMemoryFile (usersManager, Some(this), name)
+        val file: InMemoryFile = new InMemoryFile (vum, vsm, Some(this), name)
         _files.add (file)
         Right(file)
     }
@@ -91,9 +91,9 @@ with VirtualFolder {
     } yield file
 
   private def checkCreate(name: String) : Option[IOError] = {
-    if (!usersManager.checkWriteAccess(this)) {
+    if (!vsm.checkWriteAccess(this)) {
       accessDenied(s"touch $name for write access")
-    } else if (!usersManager.checkExecuteAccess(this)) {
+    } else if (!vsm.checkExecuteAccess(this)) {
       accessDenied(s"touch $name for execute access")
     } else if (_folders.exists(folder => folder.name == name) || _files.exists(file => file.name == name)) {
       ("touch: cannot create file ‘" + name + "’: File exists").ioErrorO

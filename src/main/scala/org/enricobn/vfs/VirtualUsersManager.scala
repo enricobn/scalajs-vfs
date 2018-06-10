@@ -8,11 +8,6 @@ object VirtualUsersManager {
 }
 
 trait VirtualUsersManager {
-  def checkReadAccess(node: VirtualNode) : Boolean
-
-  def checkExecuteAccess(node: VirtualNode) : Boolean
-
-  def checkWriteAccess(node: VirtualNode) : Boolean
 
   def logUser(user: String, password: String) : Option[IOError]
 
@@ -23,4 +18,5 @@ trait VirtualUsersManager {
   def currentUser: String
 
   def userExists(user: String) : Boolean
+
 }

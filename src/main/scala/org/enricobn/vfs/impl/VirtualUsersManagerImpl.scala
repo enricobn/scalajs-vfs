@@ -1,9 +1,9 @@
 package org.enricobn.vfs.impl
 
-import org.enricobn.vfs.{IOError, VirtualNode, VirtualPermission, VirtualUsersManager}
+import org.enricobn.vfs.IOError._
+import org.enricobn.vfs.{IOError, VirtualUsersManager}
 
 import scala.scalajs.js.annotation.{JSExport, JSExportAll}
-import org.enricobn.vfs.IOError._
 
 /**
   * Created by enrico on 12/2/16.
@@ -17,15 +17,6 @@ final class VirtualUsersManagerImpl(rootPassword: String) extends VirtualUsersMa
   users(VirtualUsersManager.ROOT) = rootPassword
 
   def currentUser: String = _currentUser
-
-  def checkWriteAccess(node: VirtualNode): Boolean =
-    checkAccess(node, (vp: VirtualPermission) => vp.write)
-
-  def checkReadAccess(node: VirtualNode): Boolean =
-    checkAccess(node, (vp: VirtualPermission) => vp.read)
-
-  def checkExecuteAccess(node: VirtualNode): Boolean =
-    checkAccess(node, (vp: VirtualPermission) => vp.execute)
 
   def logUser(user: String, password: String): Option[IOError] =
     if (!users.contains(user)) {
@@ -56,15 +47,5 @@ final class VirtualUsersManagerImpl(rootPassword: String) extends VirtualUsersMa
     }
 
   override def userExists(user: String): Boolean = users.contains(user)
-
-  private def checkAccess(node: VirtualNode, permission: (VirtualPermission) => Boolean) : Boolean =
-    if (VirtualUsersManager.ROOT == currentUser) {
-      true
-    } else if (node.owner == currentUser) {
-      permission.apply(node.permissions.owner)
-      //TODO group
-    } else {
-      permission.apply(node.permissions.others)
-    }
 
 }

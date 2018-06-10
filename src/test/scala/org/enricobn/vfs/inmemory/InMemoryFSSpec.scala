@@ -1,6 +1,6 @@
 package org.enricobn.vfs.inmemory
 
-import org.enricobn.vfs.{VirtualFS, VirtualUsersManager}
+import org.enricobn.vfs.{VirtualFS, VirtualSecurityManager, VirtualUsersManager}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -13,13 +13,14 @@ class InMemoryFSSpec extends FlatSpec with MockFactory with Matchers {
 
   private def fixture = {
     val vum = stub[VirtualUsersManager]
-    (vum.checkWriteAccess _).when(*).returns(true)
-    (vum.checkExecuteAccess _).when(*).returns(true)
-    (vum.checkReadAccess _).when(*).returns(true)
+    val vsm = stub[VirtualSecurityManager]
+    (vsm.checkWriteAccess _).when(*).returns(true)
+    (vsm.checkExecuteAccess _).when(*).returns(true)
+    (vsm.checkReadAccess _).when(*).returns(true)
 
     val f = new {
       val usersManager: VirtualUsersManager = vum
-      val fs = new InMemoryFS(usersManager)
+      val fs = new InMemoryFS(vum, vsm)
     }
     (f.usersManager.currentUser _).when().returns("foo")
     f

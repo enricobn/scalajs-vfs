@@ -1,6 +1,6 @@
 package org.enricobn.vfs.inmemory
 
-import org.enricobn.vfs.VirtualUsersManager
+import org.enricobn.vfs.{VirtualSecurityManager, VirtualUsersManager}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -13,14 +13,15 @@ class InMemoryFolderSpec extends FlatSpec with MockFactory with Matchers {
 
   private def fixture = {
     val vum = stub[VirtualUsersManager]
-    (vum.checkWriteAccess _).when(*).returns(true)
-    (vum.checkExecuteAccess _).when(*).returns(true)
-    (vum.checkReadAccess _).when(*).returns(true)
+    val vsm = stub[VirtualSecurityManager]
+    (vsm.checkWriteAccess _).when(*).returns(true)
+    (vsm.checkExecuteAccess _).when(*).returns(true)
+    (vsm.checkReadAccess _).when(*).returns(true)
 
-    val fs = new InMemoryFS(vum)
+    val fs = new InMemoryFS(vum, vsm)
 
     new {
-      val sut = new InMemoryFolder(vum, Some(fs.root), "foo")
+      val sut = new InMemoryFolder(vum, vsm, Some(fs.root), "foo")
       val root: InMemoryFolder = fs.root
     }
   }

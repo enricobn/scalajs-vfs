@@ -10,13 +10,14 @@ class VirtualPathSpec extends FlatSpec with MockFactory with Matchers {
 
   private def fixture = {
     val vum = stub[VirtualUsersManager]
-    (vum.checkWriteAccess _).when(*).returns(true)
-    (vum.checkExecuteAccess _).when(*).returns(true)
-    (vum.checkReadAccess _).when(*).returns(true)
+    val vsm = stub[VirtualSecurityManager]
+    (vsm.checkWriteAccess _).when(*).returns(true)
+    (vsm.checkExecuteAccess _).when(*).returns(true)
+    (vsm.checkReadAccess _).when(*).returns(true)
 
     val f = new {
       val usersManager: VirtualUsersManager = vum
-      val fs = new InMemoryFS(usersManager)
+      val fs = new InMemoryFS(usersManager, vsm)
       val usr : VirtualFolder = fs.root.mkdir("usr").right.get
       val bin : VirtualFolder = usr.mkdir("bin").right.get
       val rootFile : VirtualFile = fs.root.touch("rootFile").right.get

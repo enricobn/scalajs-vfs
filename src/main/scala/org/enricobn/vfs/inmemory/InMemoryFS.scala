@@ -1,6 +1,6 @@
 package org.enricobn.vfs.inmemory
 
-import org.enricobn.vfs.{RootFragment, VirtualFS, VirtualPath, VirtualUsersManager}
+import org.enricobn.vfs._
 
 import scala.scalajs.js.annotation.{JSExport, JSExportAll}
 
@@ -10,8 +10,8 @@ import scala.scalajs.js.annotation.{JSExport, JSExportAll}
 
 @JSExport(name = "InMemoryFS")
 @JSExportAll
-class InMemoryFS(usersManager: VirtualUsersManager) extends VirtualFS {
+class InMemoryFS(vum: VirtualUsersManager, vsm: VirtualSecurityManager) extends VirtualFS {
 
-  val root = new InMemoryFolder(usersManager, None, VirtualFS.rootPath.path)
+  val root = new InMemoryFolder(vum, vsm, None, VirtualFS.rootPath.path)
 
 }

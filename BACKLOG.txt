@@ -1,3 +1,7 @@
+DOING
+------
+- users must be stored in the filesystem
+
 NEXT
 -----
 - VirtualNode chown, chgrp
