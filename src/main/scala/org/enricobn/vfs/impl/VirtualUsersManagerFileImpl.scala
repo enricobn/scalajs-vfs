@@ -4,7 +4,13 @@ import org.enricobn.vfs.IOError._
 import org.enricobn.vfs._
 
 import scala.scalajs.js.annotation.{JSExport, JSExportAll}
+import scala.util.Random
 
+object VirtualUsersManagerFileImpl {
+
+  private def createId() = Random.nextInt().toString
+
+}
 
 /**
   * Created by enrico on 6/10/18.
@@ -13,22 +19,25 @@ import scala.scalajs.js.annotation.{JSExport, JSExportAll}
 @JSExport(name = "VirtualUsersManagerFileImpl")
 @JSExportAll
 final class VirtualUsersManagerFileImpl(fs: VirtualFS, rootPassword: String) extends VirtualUsersManager {
-  private var _currentUser: String = VirtualUsersManager.ROOT
+  import VirtualUsersManagerFileImpl._
 
-  private val etcFolderE = fs.root.findFolder("etc") match {
+  //private var _currentUser: String = VirtualUsersManager.ROOT
+  private val rootAuthentication = Authentication(createId(), VirtualUsersManager.ROOT)
+
+  private val etcFolderE = fs.root.findFolder("etc")(rootAuthentication) match {
     case Right(Some(etc)) => Right(etc)
-    case Right(None) => fs.root.mkdir("etc")
+    case Right(None) => fs.root.mkdir("etc")(rootAuthentication)
     case _ => throw new RuntimeException("Cannot create etc")
   }
 
   private val etcFolder = etcFolderE.right.get
 
-  private val passwdFile = etcFolder.findFile("passwd") match {
+  private val passwdFile = etcFolder.findFile("passwd")(rootAuthentication) match {
     case Right(Some(passwd)) =>
       passwd
     case Right(None) =>
-      val file = etcFolder.touch("passwd").right.get
-      file.content = Map[String, String]()
+      val file = etcFolder.touch("passwd")(rootAuthentication).right.get
+      file.setContent(Map[String, String]())(rootAuthentication)
       file
     case _  => throw new RuntimeException("Cannot create passwd")
   }
@@ -37,12 +46,12 @@ final class VirtualUsersManagerFileImpl(fs: VirtualFS, rootPassword: String) ext
     .foreach( error => throw new RuntimeException(error.message))
     */
 
-  def currentUser: String = _currentUser
+//  def currentUser: String = _currentUser
 
-  private def users = passwdFile.content.right.get.asInstanceOf[Map[String, String]]
+  private def users = passwdFile.getContent(rootAuthentication).right.get.asInstanceOf[Map[String, String]]
 
-  def logUser(user: String, password: String): Option[IOError] =
-    if (!users.contains(user)) {
+  override def logUser(user: String, password: String): Either[IOError, Authentication] = ???
+    /*if (!users.contains(user)) {
       "Invalid user.".ioErrorO
     } else if (!users.get(user).contains(password)) {
       "Invalid password.".ioErrorO
@@ -50,25 +59,31 @@ final class VirtualUsersManagerFileImpl(fs: VirtualFS, rootPassword: String) ext
       _currentUser = user
       None
     }
+    */
 
-  def logRoot(password: String): Option[IOError] =
-    if (rootPassword != password) {
+  override def logRoot(password: String): Either[IOError, Authentication] = ???
+/*    if (rootPassword != password) {
       "Invalid password.".ioErrorO
     } else {
       _currentUser = VirtualUsersManager.ROOT
       None
     }
+    */
 
-  def addUser(user: String, password: String): Option[IOError] =
+  override def addUser(user: String, password: String)(implicit authentication: Authentication): Option[IOError] = {
+    val currentUser = getUser.get
     if (currentUser != VirtualUsersManager.ROOT) {
       "Only root can add users.".ioErrorO
     } else if (users.contains(user)) {
       "User already added.".ioErrorO
     } else {
-      passwdFile.content = users + (user -> password)
+      passwdFile.setContent(users + (user -> password))(rootAuthentication)
       None
     }
+  }
 
   override def userExists(user: String): Boolean = users.contains(user)
+
+  override def getUser(implicit authentication: Authentication): Option[String] = ???
 
 }

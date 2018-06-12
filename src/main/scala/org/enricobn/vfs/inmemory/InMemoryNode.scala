@@ -18,24 +18,22 @@ object InMemoryNode {
     }
   }
 }
-class InMemoryNode private[inmemory] (val vum: VirtualUsersManager, val vsm: VirtualSecurityManager,
-                                      val parent: Option[VirtualFolder], val name: String)
+
+abstract class InMemoryNode private[inmemory] (val vum: VirtualUsersManager, val vsm: VirtualSecurityManager,
+                                      val parent: Option[VirtualFolder], val name: String, val initialOwner: String)
 extends VirtualNode {
   import InMemoryNode._
 
-  private var _owner: String = vum.currentUser
-  private val _permissions: InMemoryPermissions = new InMemoryPermissions
+  private var _owner: String = initialOwner
+  private val _permissions: InMemoryPermissions = initialPermissions
 
   final def owner: String = _owner
 
-  final def permissions: InMemoryPermissions = _permissions
+  final def permissions: VirtualPermissions = _permissions
 
-  if (vum.currentUser != VirtualUsersManager.ROOT && parent.isDefined) {
-    // TODO it does nothing: it does not throw an exception, it returns a boolean!!!
-    vsm.checkWriteAccess(parent.get)
-  }
+  def initialPermissions : InMemoryPermissions = new InMemoryPermissions
 
-  final def setExecutable(): Option[IOError] = {
+  final def setExecutable(implicit authentication: Authentication): Option[IOError] = {
     if (!vsm.checkWriteAccess(this)) {
       accessDenied("set executable")
     } else {
@@ -46,7 +44,7 @@ extends VirtualNode {
     }
   }
 
-  final def setPermissions(permissions: VirtualPermissions): Option[IOError] = {
+  final def setPermissions(permissions: VirtualPermissions)(implicit authentication: Authentication): Option[IOError] = {
     if (!vsm.checkWriteAccess(this)) {
       accessDenied("set permissions")
     } else {
@@ -63,7 +61,7 @@ extends VirtualNode {
     }
   }
 
-  final def chmod(value: Int): Option[IOError] = {
+  final def chmod(value: Int)(implicit authentication: Authentication): Option[IOError] = {
     if (!vsm.checkWriteAccess(this)) {
       accessDenied("chmod")
     } else {
@@ -81,7 +79,7 @@ extends VirtualNode {
     }
   }
 
-  override def chown(user: String): Option[IOError] =
+  override def chown(user: String)(implicit authentication: Authentication): Option[IOError] =
     if (!vsm.checkWriteAccess(this)) {
       accessDenied("chown")
     } else if (!vum.userExists(user)) {
@@ -91,17 +89,21 @@ extends VirtualNode {
       None
     }
 
-  final override def getCurrentUserPermission: VirtualPermission = {
+  final override def getCurrentUserPermission(implicit authentication: Authentication) : Either[IOError, VirtualPermission] = {
     // TODO group
-    if (vum.currentUser == owner) {
-      _permissions.owner
-    } else {
-      _permissions.others
+    vum.getUser(authentication) match {
+      case Some(user) =>
+        if (user == owner) {
+          Right(_permissions.owner)
+        } else {
+          Right(_permissions.others)
+        }
+      case _ => "Authentication error.".ioErrorE
     }
   }
 
   protected def accessDenied(prefix: String): Some[IOError] = {
-    Some(IOError(s"$prefix of $this for user ${vum.currentUser}: access denied."))
+    Some(IOError(s"$prefix of $this : access denied."))
   }
 
 }

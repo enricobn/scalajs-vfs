@@ -1,6 +1,6 @@
 package org.enricobn.vfs
 
-import IOError._
+import org.enricobn.vfs.IOError._
 
 /**
   * Created by enrico on 12/2/16.
@@ -8,12 +8,12 @@ import IOError._
 //@JSExportAll
 trait VirtualFile extends VirtualNode {
 
-  def content: Either[IOError, AnyRef]
+  def getContent(implicit authentication: Authentication) : Either[IOError, AnyRef]
 
-  def content_=(content: AnyRef) : Option[IOError]
+  def setContent(content: AnyRef)(implicit authentication: Authentication): Option[IOError]
 
-  def contentAs[T](clazz: Class[T]) : Either[IOError, T] =
-    content match {
+  def contentAs[T](clazz: Class[T])(implicit authentication: Authentication): Either[IOError, T] =
+    getContent(authentication) match {
       case Left(error) => Left(error)
       case Right(content) =>
         if (clazz.isAssignableFrom(content.getClass)) {

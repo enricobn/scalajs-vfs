@@ -11,23 +11,26 @@ import scala.scalajs.js.annotation.{JSExport, JSExportAll}
 @JSExportAll
 final class VirtualSecurityManagerImpl(vum: VirtualUsersManager) extends VirtualSecurityManager {
 
-  def checkWriteAccess(node: VirtualNode): Boolean =
+  def checkWriteAccess(node: VirtualNode)(implicit authentication: Authentication): Boolean =
     checkAccess(node, (vp: VirtualPermission) => vp.write)
 
-  def checkReadAccess(node: VirtualNode): Boolean =
+  def checkReadAccess(node: VirtualNode)(implicit authentication: Authentication): Boolean =
     checkAccess(node, (vp: VirtualPermission) => vp.read)
 
-  def checkExecuteAccess(node: VirtualNode): Boolean =
+  def checkExecuteAccess(node: VirtualNode)(implicit authentication: Authentication): Boolean =
     checkAccess(node, (vp: VirtualPermission) => vp.execute)
 
-  private def checkAccess(node: VirtualNode, permission: VirtualPermission => Boolean) : Boolean =
-    if (VirtualUsersManager.ROOT == vum.currentUser) {
+  private def checkAccess(node: VirtualNode, permission: VirtualPermission => Boolean)(implicit authentication: Authentication) = {
+    // TODO handle error
+    val user = vum.getUser.get
+    if (VirtualUsersManager.ROOT == user) {
       true
-    } else if (node.owner == vum.currentUser) {
+    } else if (node.owner == user) {
       permission.apply(node.permissions.owner)
       //TODO group
     } else {
       permission.apply(node.permissions.others)
     }
+  }
 
 }

@@ -7,16 +7,18 @@ object VirtualUsersManager {
   val ROOT: String = "root"
 }
 
+case class Authentication(id: String, user: String)
+
 trait VirtualUsersManager {
 
-  def logUser(user: String, password: String) : Option[IOError]
+  def logUser(user: String, password: String) : Either[IOError, Authentication]
 
-  def logRoot(password: String) : Option[IOError]
+  def logRoot(password: String) : Either[IOError, Authentication]
 
-  def addUser(user: String, password: String) : Option[IOError]
-
-  def currentUser: String
+  def addUser(user: String, password: String)(implicit authentication: Authentication): Option[IOError]
 
   def userExists(user: String) : Boolean
+
+  def getUser(implicit authentication: Authentication) : Option[String]
 
 }

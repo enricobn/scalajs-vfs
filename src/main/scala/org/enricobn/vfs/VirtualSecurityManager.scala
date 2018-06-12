@@ -2,10 +2,10 @@ package org.enricobn.vfs
 
 trait VirtualSecurityManager {
 
-  def checkReadAccess(node: VirtualNode) : Boolean
+  def checkReadAccess(node: VirtualNode)(implicit authentication: Authentication) : Boolean
 
-  def checkExecuteAccess(node: VirtualNode) : Boolean
+  def checkExecuteAccess(node: VirtualNode)(implicit authentication: Authentication) : Boolean
 
-  def checkWriteAccess(node: VirtualNode) : Boolean
+  def checkWriteAccess(node: VirtualNode)(implicit authentication: Authentication) : Boolean
 
 }

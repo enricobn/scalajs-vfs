@@ -8,12 +8,13 @@ import org.scalatest.{FlatSpec, Matchers}
   * Created by enrico on 12/3/16.
   */
 class VirtualSecurityManagerImplSpec extends FlatSpec with MockFactory with Matchers {
+  private implicit val authentication = Authentication("", "")
 
-  def fixture(): VirtualSecurityManager = fixture("root")
+  def fixture(): VirtualSecurityManager = fixture(VirtualUsersManager.ROOT)
 
   def fixture(user: String): VirtualSecurityManager = {
     val vum = stub[VirtualUsersManager]
-    (vum.currentUser _).when().returns(user)
+    (vum.getUser(_ : Authentication)).when(*).returns(Some(user))
 
     new VirtualSecurityManagerImpl(vum)
 

@@ -6,38 +6,44 @@ import org.enricobn.vfs._
 /**
   * Created by enrico on 12/2/16.
   */
-class InMemoryFolder private[inmemory] (vum: VirtualUsersManager, vsm: VirtualSecurityManager, parent: Option[VirtualFolder], name: String)
-extends InMemoryNode(vum, vsm, parent, name)
+class InMemoryFolder private[inmemory] (vum: VirtualUsersManager, vsm: VirtualSecurityManager,
+                                        parent: Option[VirtualFolder], name: String, owner: String)
+extends InMemoryNode(vum, vsm, parent, name, owner)
 with VirtualFolder {
   private val _files = new scala.collection.mutable.HashSet[VirtualFile]
   private val _folders = new scala.collection.mutable.HashSet[InMemoryFolder]
 
-  setExecutable() match {
-    case Some(error) => throw new IllegalStateException(error.message)
-    case _ =>
+  override def initialPermissions: InMemoryPermissions = {
+    val permissions = new InMemoryPermissions
+    permissions.owner.execute = true
+    permissions.group.execute = true
+    permissions.others.execute = true
+    permissions
   }
 
-  private def checkExecuteAccess() : Option[IOError] =
+  private def checkExecuteAccess(implicit authentication: Authentication) : Option[IOError] =
     if (!vsm.checkExecuteAccess(this)) {
       accessDenied("check execute access")
     } else {
       None
     }
 
-  private def checkWriteAccess() : Option[IOError] =
+  private def checkWriteAccess(implicit authentication: Authentication) : Option[IOError] =
     if (!vsm.checkWriteAccess(this)) {
      accessDenied("check write access")
     } else {
       None
     }
 
-  def folders: Either[IOError, Set[VirtualFolder]] = checkExecuteAccess().toLeft(_folders.toSet)
+  def folders(implicit authentication: Authentication) : Either[IOError, Set[VirtualFolder]] =
+    checkExecuteAccess.toLeft(_folders.toSet)
 
-  def files: Either[IOError, Set[VirtualFile]] = checkExecuteAccess().toLeft(_files.toSet)
+  def files(implicit authentication: Authentication) : Either[IOError, Set[VirtualFile]] =
+    checkExecuteAccess.toLeft(_files.toSet)
 
-  def mkdir(name: String): Either[IOError, InMemoryFolder] = {
-    checkWriteAccess()
-      .orElse(checkExecuteAccess())
+  def mkdir(name: String)(implicit authentication: Authentication): Either[IOError, InMemoryFolder] = {
+    checkWriteAccess
+      .orElse(checkExecuteAccess)
       .orElse({
         if (_folders.exists(folder => folder.name == name) || _files.exists(file => file.name == name)) {
           ("mkdir: cannot create directory ‘" + name + "’: File exists").ioErrorO
@@ -46,14 +52,16 @@ with VirtualFolder {
         }
       })
       .toLeft({
-        val folder = new InMemoryFolder(vum, vsm, Some(this), name)
+        // TODO handle error
+        val user = vum.getUser.get
+        val folder = new InMemoryFolder(vum, vsm, Some(this), name, user)
         _folders.add(folder)
         folder
       })
   }
 
-  def deleteFile(name: String): Option[IOError] = {
-    checkWriteAccess()
+  def deleteFile(name: String)(implicit authentication: Authentication): Option[IOError] = {
+    checkWriteAccess
       .orElse(findFile(name).right.map {
           case Some(file) => _files.remove(file.asInstanceOf[InMemoryFile])
           case _ => IOError("No such file.")
@@ -61,8 +69,8 @@ with VirtualFolder {
       )
   }
 
-  def deleteFolder(name: String): Option[IOError] = {
-    checkWriteAccess()
+  def deleteFolder(name: String)(implicit authentication: Authentication): Option[IOError] = {
+    checkWriteAccess(authentication)
         .orElse(findFolder(name).right.map {
           case Some(folder) => _folders.remove(folder.asInstanceOf[InMemoryFolder])
           case _ => IOError("No such directory.")
@@ -70,11 +78,13 @@ with VirtualFolder {
     )
   }
 
-  def touch(name: String): Either[IOError, InMemoryFile] = {
-    checkCreate(name) match {
+  def touch(name: String)(implicit authentication: Authentication): Either[IOError, InMemoryFile] = {
+    checkCreate(name)(authentication) match {
       case Some(error) => error.message.ioErrorE
       case _ =>
-        val file: InMemoryFile = new InMemoryFile (vum, vsm, Some(this), name)
+        // TODO handle error
+        val user = vum.getUser(authentication).get
+        val file: InMemoryFile = new InMemoryFile (vum, vsm, Some(this), name, user)
         _files.add (file)
         Right(file)
     }
@@ -84,13 +94,13 @@ with VirtualFolder {
     "Unsupported operation".ioErrorO
   }
 
-  override def createFile(name: String, content: AnyRef): Either[IOError, VirtualFile] =
+  def createFile(name: String, content: AnyRef)(implicit authentication: Authentication): Either[IOError, VirtualFile] =
     for {
       createdFile <- touch(name).right
-      file <- (createdFile.content = content).toLeft(createdFile).right
+      file <- createdFile.setContent(content).toLeft(createdFile).right
     } yield file
 
-  private def checkCreate(name: String) : Option[IOError] = {
+  private def checkCreate(name: String)(implicit authentication: Authentication) = {
     if (!vsm.checkWriteAccess(this)) {
       accessDenied(s"touch $name for write access")
     } else if (!vsm.checkExecuteAccess(this)) {

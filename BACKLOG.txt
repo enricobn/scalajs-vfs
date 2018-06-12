@@ -1,6 +1,7 @@
 DOING
 ------
-- users must be stored in the filesystem
+- on branch authentication: use an Authentication object to authenticate a user and don't store current user in VirtualUsersManager
+    - users must be stored in the filesystem
 
 NEXT
 -----

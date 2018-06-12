@@ -19,47 +19,39 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
       val rootPassword: String = UUID.randomUUID().toString
       val guestPassword: String = UUID.randomUUID().toString
       val usersManager: VirtualUsersManager = new VirtualUsersManagerImpl(rootPassword)
+      val rootAuthentication: Authentication = usersManager.logRoot(rootPassword).right.get
+      usersManager.addUser("guest", guestPassword)(rootAuthentication)
     }
-
-    f.usersManager.addUser("guest", f.guestPassword)
     f
   }
 
-  private def checkIOError(result: Option[IOError], message: String) =
-    assert(result.exists(e => e.message == message))
-
-
-  "UserManager" should "start as root" in {
-    val f = fixture
-
-    assert(VirtualUsersManager.ROOT == f.usersManager.currentUser)
-  }
 
   "Login with a valid user" should "be fine" in {
     val f = fixture
 
-    f.usersManager.logUser("guest", f.guestPassword)
-    assert("guest" == f.usersManager.currentUser)
+    val logUser = f.usersManager.logUser("guest", f.guestPassword)
+    assert(logUser.right.get.user == "guest")
   }
 
-   "Login as user then root" should "be fine" in {
-      val f = fixture
+  "Login as user then root" should "be fine" in {
+    val f = fixture
 
-      f.usersManager.logUser("guest", f.guestPassword)
-      f.usersManager.logRoot(f.rootPassword)
-      assert(VirtualUsersManager.ROOT == f.usersManager.currentUser)
-    }
+    var logUser = f.usersManager.logUser("guest", f.guestPassword)
+    assert(logUser.right.get.user == "guest")
+
+    logUser = f.usersManager.logRoot(f.rootPassword)
+    assert(logUser.right.get.user == VirtualUsersManager.ROOT)
+  }
 
   "Login with invalid password" should "throws an exception" in {
     val f = fixture
 
     checkIOError(f.usersManager.logUser("guest", "invalid"), "Invalid password.")
 
-//    val caught =
 //      intercept[VirtualSecurityException] {
-//      f.usersManager.logUser("guest", "invalid")
-//    }
-//    assert(caught.getMessage == "Invalid password.")
+    //      f.usersManager.logUser("guest", "invalid")
+    //    }
+    //    assert(caught.getMessage == "Invalid password.")
   }
 
   "Login root with invalid password" should "throws an exception" in {
@@ -93,34 +85,41 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
   "Adding an already added user" should "throws an exception" in {
     val f = fixture
 
-    checkIOError(f.usersManager.addUser("guest", f.guestPassword), "User already added.")
+    checkIOError(f.usersManager.addUser("guest", f.guestPassword)(f.rootAuthentication), "User already added.")
   }
 
   "Adding an already added user with invalid password" should "throws an exception" in {
     val f = fixture
 
-    checkIOError(f.usersManager.addUser("guest", "invalid"), "User already added.")
+    checkIOError(f.usersManager.addUser("guest", "invalid")(f.rootAuthentication), "User already added.")
   }
 
   "Adding root" should "throws an exception" in {
     val f = fixture
 
-    checkIOError(f.usersManager.addUser("root", f.rootPassword), "User already added.")
+    checkIOError(f.usersManager.addUser("root", f.rootPassword)(f.rootAuthentication), "User already added.")
   }
 
   "Adding root with invalid password" should "throws an exception" in {
     val f = fixture
 
-    checkIOError(f.usersManager.addUser("root", "invalid"), "User already added.")
+    checkIOError(f.usersManager.addUser("root", "invalid")(f.rootAuthentication), "User already added.")
   }
 
   "Adding user from another user" should "throws an exception" in {
     val f = fixture
 
-    f.usersManager.logUser("guest", f.guestPassword)
+    val authentication = f.usersManager.logUser("guest", f.guestPassword).right.get
 
-    checkIOError(f.usersManager.addUser("brian", "brian"), "Only root can add users.")
+    checkIOError(f.usersManager.addUser("brian", "brian")(authentication), "Only root can add users.")
   }
+
+  private def checkIOError(result: Either[IOError, Authentication], message: String) =
+    assert(result.left.exists(e => e.message == message))
+
+  private def checkIOError(result: Option[IOError], message: String) =
+    assert(result.exists(e => e.message == message))
+
 
   private def createNode(owner: String, name: String): VirtualNode = {
     val node: VirtualNode = stub[VirtualNode]

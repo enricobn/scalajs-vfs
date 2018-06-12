@@ -12,6 +12,6 @@ import scala.scalajs.js.annotation.{JSExport, JSExportAll}
 @JSExportAll
 class InMemoryFS(vum: VirtualUsersManager, vsm: VirtualSecurityManager) extends VirtualFS {
 
-  val root = new InMemoryFolder(vum, vsm, None, VirtualFS.rootPath.path)
+  val root = new InMemoryFolder(vum, vsm, None, VirtualFS.rootPath.path, VirtualUsersManager.ROOT)
 
 }

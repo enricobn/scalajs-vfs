@@ -1,9 +1,16 @@
 package org.enricobn.vfs.impl
 
 import org.enricobn.vfs.IOError._
-import org.enricobn.vfs.{IOError, VirtualUsersManager}
+import org.enricobn.vfs.{Authentication, IOError, VirtualUsersManager}
 
 import scala.scalajs.js.annotation.{JSExport, JSExportAll}
+import scala.util.Random
+
+object VirtualUsersManagerImpl {
+
+  private def createId() = Random.nextInt().toString
+
+}
 
 /**
   * Created by enrico on 12/2/16.
@@ -11,39 +18,44 @@ import scala.scalajs.js.annotation.{JSExport, JSExportAll}
 @JSExport(name = "VirtualUsersManagerImpl")
 @JSExportAll
 final class VirtualUsersManagerImpl(rootPassword: String) extends VirtualUsersManager {
-  private val users = new scala.collection.mutable.HashMap[String, String]
-  private var _currentUser: String = VirtualUsersManager.ROOT
+  /**
+    * key = user
+    * value = (authentication, password)
+    */
+  private val users = new scala.collection.mutable.HashMap[String, (Authentication, String)]
 
-  users(VirtualUsersManager.ROOT) = rootPassword
+  import VirtualUsersManagerImpl._
 
-  def currentUser: String = _currentUser
+  users(VirtualUsersManager.ROOT) = (Authentication(createId(), VirtualUsersManager.ROOT), rootPassword)
 
-  def logUser(user: String, password: String): Option[IOError] =
-    if (!users.contains(user)) {
-      "Invalid user.".ioErrorO
-    } else if (!users.get(user).contains(password)) {
-      "Invalid password.".ioErrorO
+  def logUser(user: String, password: String): Either[IOError, Authentication] =
+    if (users.contains(user)) {
+      val (auth, authPassword) = users(user)
+      if (authPassword != password) {
+        Left(IOError("Invalid password."))
+      } else {
+        Right(auth)
+      }
     } else {
-      _currentUser = user
-      None
+      Left(IOError("Invalid user."))
     }
 
-  def logRoot(password: String): Option[IOError] =
-    if (rootPassword != password) {
-      "Invalid password.".ioErrorO
-    } else {
-      _currentUser = VirtualUsersManager.ROOT
-      None
-    }
+  def logRoot(password: String): Either[IOError, Authentication] = logUser(VirtualUsersManager.ROOT, password)
 
-  def addUser(user: String, password: String): Option[IOError] =
-    if (currentUser != VirtualUsersManager.ROOT) {
+  def addUser(user: String, password: String)(implicit authentication: Authentication): Option[IOError] =
+    if (!getUser.contains(VirtualUsersManager.ROOT)) {
       "Only root can add users.".ioErrorO
     } else if (users.contains(user)) {
       "User already added.".ioErrorO
     } else {
-      users(user) = password
+      users(user) = (Authentication(createId(), user), password)
       None
+    }
+
+  def getUser(implicit authentication: Authentication) =
+    users.find { case (_, (auth, _)) => authentication.id == auth.id } match {
+      case Some((user, (_, _))) => Some(user)
+      case _ => None
     }
 
   override def userExists(user: String): Boolean = users.contains(user)

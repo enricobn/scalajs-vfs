@@ -2,13 +2,12 @@ package org.enricobn.vfs
 
 import scala.scalajs.js.annotation.JSExportAll
 
-import IOError._
-
 /**
   * Created by enrico on 12/2/16.
   */
 @JSExportAll
 trait VirtualNode {
+
   def name: String
 
   def parent: Option[VirtualFolder]
@@ -17,13 +16,15 @@ trait VirtualNode {
 
   def permissions: VirtualPermissions
 
-  def setExecutable() : Option[IOError]
+  def setExecutable(implicit authentication: Authentication) : Option[IOError]
 
-  def setPermissions(permissions: VirtualPermissions) : Option[IOError]
+  def setPermissions(permissions: VirtualPermissions)(implicit authentication: Authentication): Option[IOError]
 
-  def chmod(value: Int) : Option[IOError]
+  def chmod(value: Int)(implicit authentication: Authentication): Option[IOError]
 
-  def chown(owner: String) : Option[IOError]
+  def chown(owner: String)(implicit authentication: Authentication): Option[IOError]
+
+  def getCurrentUserPermission(implicit authentication: Authentication) : Either[IOError, VirtualPermission]
 
   lazy val path: String =
     if (parent.isDefined)
@@ -34,8 +35,6 @@ trait VirtualNode {
     else
       VirtualFS.root
 
-
-  def getCurrentUserPermission : VirtualPermission
 
   def canEqual(other: Any): Boolean = other.isInstanceOf[VirtualNode]
 

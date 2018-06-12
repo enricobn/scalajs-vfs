@@ -1,6 +1,6 @@
 package org.enricobn.vfs.inmemory
 
-import org.enricobn.vfs.{VirtualFS, VirtualSecurityManager, VirtualUsersManager}
+import org.enricobn.vfs._
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -14,15 +14,18 @@ class InMemoryFSSpec extends FlatSpec with MockFactory with Matchers {
   private def fixture = {
     val vum = stub[VirtualUsersManager]
     val vsm = stub[VirtualSecurityManager]
-    (vsm.checkWriteAccess _).when(*).returns(true)
-    (vsm.checkExecuteAccess _).when(*).returns(true)
-    (vsm.checkReadAccess _).when(*).returns(true)
+
+    (vsm.checkWriteAccess(_ : VirtualNode)(_ : Authentication)).when(*, *).returns(true)
+    (vsm.checkExecuteAccess(_ : VirtualNode)(_: Authentication)).when(*, *).returns(true)
+    (vsm.checkReadAccess(_: VirtualNode)(_: Authentication)).when(*, *).returns(true)
+    (vum.getUser(_ : Authentication)).when(*).returns(Some("foo"))
+
 
     val f = new {
       val usersManager: VirtualUsersManager = vum
       val fs = new InMemoryFS(vum, vsm)
+      val authentication = Authentication("", "foo")
     }
-    (f.usersManager.currentUser _).when().returns("foo")
     f
   }
 
@@ -37,11 +40,11 @@ class InMemoryFSSpec extends FlatSpec with MockFactory with Matchers {
 
     val folderName = "foo"
 
-    val pippo = f.fs.root.mkdir(folderName).right.get
+    val pippo = f.fs.root.mkdir(folderName)(f.authentication).right.get
 
     assert(pippo.name == folderName)
-    assert(f.fs.root.folders.right.get.size == 1)
-    assert(f.fs.root.folders.right.get.head.name == folderName)
+    assert(f.fs.root.folders(f.authentication).right.get.size == 1)
+    assert(f.fs.root.folders(f.authentication).right.get.head.name == folderName)
   }
 
   "Mkdir" should "add a folder with current user as owner" in {
@@ -49,7 +52,7 @@ class InMemoryFSSpec extends FlatSpec with MockFactory with Matchers {
 
     val folderName = "foo"
 
-    val pippo = f.fs.root.mkdir(folderName).right.get
+    val pippo = f.fs.root.mkdir(folderName)(f.authentication).right.get
 
     assert(pippo.owner == "foo")
   }
