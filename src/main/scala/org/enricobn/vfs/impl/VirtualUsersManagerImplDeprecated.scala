@@ -6,7 +6,7 @@ import org.enricobn.vfs.{Authentication, IOError, VirtualUsersManager}
 import scala.scalajs.js.annotation.{JSExport, JSExportAll}
 import scala.util.Random
 
-object VirtualUsersManagerImpl {
+object VirtualUsersManagerImplDeprecated {
 
   private def createId() = Random.nextInt().toString
 
@@ -14,17 +14,19 @@ object VirtualUsersManagerImpl {
 
 /**
   * Created by enrico on 12/2/16.
+  * Deprecated: use InMemoryFS.vum
   */
 @JSExport(name = "VirtualUsersManagerImpl")
 @JSExportAll
-final class VirtualUsersManagerImpl(rootPassword: String) extends VirtualUsersManager {
+@Deprecated
+final class VirtualUsersManagerImplDeprecated(rootPassword: String) extends VirtualUsersManager {
   /**
     * key = user
     * value = (authentication, password)
     */
   private val users = new scala.collection.mutable.HashMap[String, (Authentication, String)]
 
-  import VirtualUsersManagerImpl._
+  import VirtualUsersManagerImplDeprecated._
 
   users(VirtualUsersManager.ROOT) = (Authentication(createId(), VirtualUsersManager.ROOT), rootPassword)
 
@@ -39,8 +41,6 @@ final class VirtualUsersManagerImpl(rootPassword: String) extends VirtualUsersMa
     } else {
       Left(IOError("Invalid user."))
     }
-
-  def logRoot(password: String): Either[IOError, Authentication] = logUser(VirtualUsersManager.ROOT, password)
 
   def addUser(user: String, password: String)(implicit authentication: Authentication): Option[IOError] =
     if (!getUser.contains(VirtualUsersManager.ROOT)) {

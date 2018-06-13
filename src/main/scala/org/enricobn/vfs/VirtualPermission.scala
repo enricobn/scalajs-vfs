@@ -4,7 +4,7 @@ package org.enricobn.vfs
   * Created by enrico on 12/2/16.
   */
 object VirtualPermission {
-  val EXEC_PERMISSION: VirtualPermission = new VirtualPermission() {
+  val EXEC: VirtualPermission = new VirtualPermission() {
     def read: Boolean = true
 
     def write: Boolean = false
@@ -12,10 +12,26 @@ object VirtualPermission {
     def execute: Boolean = true
   }
 
-  val READ_PERMISSION: VirtualPermission = new VirtualPermission() {
+  val READ: VirtualPermission = new VirtualPermission() {
     def read: Boolean = true
 
     def write: Boolean = false
+
+    def execute: Boolean = false
+  }
+
+  val NONE: VirtualPermission = new VirtualPermission() {
+    def read: Boolean = false
+
+    def write: Boolean = false
+
+    def execute: Boolean = false
+  }
+
+  val WRITE: VirtualPermission = new VirtualPermission() {
+    def read: Boolean = true
+
+    def write: Boolean = true
 
     def execute: Boolean = false
   }

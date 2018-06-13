@@ -13,6 +13,7 @@ class InMemoryFolderSpec extends FlatSpec with MockFactory with Matchers {
 
   private def fixture = {
     val vum = stub[VirtualUsersManager]
+
     val vsm = stub[VirtualSecurityManager]
 
     (vsm.checkWriteAccess(_ : VirtualNode)(_ : Authentication)).when(*, *).returns(true)
@@ -20,12 +21,13 @@ class InMemoryFolderSpec extends FlatSpec with MockFactory with Matchers {
     (vsm.checkReadAccess(_: VirtualNode)(_: Authentication)).when(*, *).returns(true)
     (vum.getUser(_ : Authentication)).when(*).returns(Some(VirtualUsersManager.ROOT))
 
-    val fs = new InMemoryFS(vum, vsm)
+    val rootPassword = "rootPassword"
+    val _root = new InMemoryFolder(vum, vsm, None, "/", VirtualUsersManager.ROOT)//new InMemoryFS(rootPassword)
 
     new {
-      val authentication = Authentication("", "")
-      val sut = new InMemoryFolder(vum, vsm, Some(fs.root), "foo", VirtualUsersManager.ROOT)
-      val root: InMemoryFolder = fs.root
+      val authentication: Authentication = Authentication("", VirtualUsersManager.ROOT)//fs.vum.logRoot(rootPassword).right.get
+      val sut = new InMemoryFolder(vum, vsm, Some(_root), "foo", VirtualUsersManager.ROOT)
+      val root: InMemoryFolder = _root//fs.root
     }
   }
 

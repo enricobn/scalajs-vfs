@@ -12,19 +12,26 @@ import scala.language.reflectiveCalls
 class InMemoryFSSpec extends FlatSpec with MockFactory with Matchers {
 
   private def fixture = {
-    val vum = stub[VirtualUsersManager]
+    //val vum = stub[VirtualUsersManager]
+    /*
     val vsm = stub[VirtualSecurityManager]
 
     (vsm.checkWriteAccess(_ : VirtualNode)(_ : Authentication)).when(*, *).returns(true)
     (vsm.checkExecuteAccess(_ : VirtualNode)(_: Authentication)).when(*, *).returns(true)
     (vsm.checkReadAccess(_: VirtualNode)(_: Authentication)).when(*, *).returns(true)
-    (vum.getUser(_ : Authentication)).when(*).returns(Some("foo"))
+    //(vum.getUser(_ : Authentication)).when(*).returns(Some("foo"))
+    */
 
+    val rootPassword = "rootPassword"
+    val _fs = new InMemoryFS(rootPassword)
+    val _rootAuthentication: Authentication = _fs.vum.logRoot(rootPassword).right.get
+    _fs.vum.addUser("foo", "fooPassword")(_rootAuthentication)
 
     val f = new {
-      val usersManager: VirtualUsersManager = vum
-      val fs = new InMemoryFS(vum, vsm)
-      val authentication = Authentication("", "foo")
+      val fs: InMemoryFS = _fs
+      val usersManager: VirtualUsersManager = fs.vum
+      val fooAuthentication: Authentication = fs.vum.logUser("foo", "fooPassword").right.get
+      val rootAuthentication: Authentication = _rootAuthentication
     }
     f
   }
@@ -35,26 +42,40 @@ class InMemoryFSSpec extends FlatSpec with MockFactory with Matchers {
     assert(f.fs.root.name == "/")
   }
 
-  "Mkdir" should "add a folder" in {
+  "Mkdir as root" should "add a folder in /" in {
     val f = fixture
 
     val folderName = "foo"
 
-    val pippo = f.fs.root.mkdir(folderName)(f.authentication).right.get
+    val result = f.fs.root.mkdir(folderName)(f.rootAuthentication).right.get
 
-    assert(pippo.name == folderName)
-    assert(f.fs.root.folders(f.authentication).right.get.size == 1)
-    assert(f.fs.root.folders(f.authentication).right.get.head.name == folderName)
+    assert(result.name == folderName)
+
+    assert(f.fs.root.folders(f.rootAuthentication).right.get.exists(_.name == folderName))
   }
 
-  "Mkdir" should "add a folder with current user as owner" in {
+  "Mkdir as foo" should "not add a folder in /" in {
+    val f = fixture
+
+    val folderName = "fooFolder"
+
+    val result = f.fs.root.mkdir(folderName)(f.fooAuthentication)
+
+    assert(result.isLeft)
+
+  }
+
+  "Mkdir as foo" should "add a folder with current user as owner" in {
     val f = fixture
 
     val folderName = "foo"
 
-    val pippo = f.fs.root.mkdir(folderName)(f.authentication).right.get
+    // I must own root to do it
+    f.fs.root.chown("foo")(f.rootAuthentication)
 
-    assert(pippo.owner == "foo")
+    val result = f.fs.root.mkdir(folderName)(f.fooAuthentication).right.get
+
+    assert(result.owner == "foo")
   }
 
   "RootPath name" should "be slash" in {

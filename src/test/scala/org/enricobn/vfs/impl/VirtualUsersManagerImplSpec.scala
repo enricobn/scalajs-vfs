@@ -3,6 +3,7 @@ package org.enricobn.vfs.impl
 import java.util.UUID
 
 import org.enricobn.vfs._
+import org.enricobn.vfs.inmemory.InMemoryFS
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -15,16 +16,26 @@ import scala.language.reflectiveCalls
 class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matchers {
 
   def fixture = {
+/*
+    val vsm = stub[VirtualSecurityManager]
+
+    (vsm.checkWriteAccess(_ : VirtualNode)(_ : Authentication)).when(*, *).returns(true)
+    (vsm.checkExecuteAccess(_ : VirtualNode)(_: Authentication)).when(*, *).returns(true)
+    (vsm.checkReadAccess(_: VirtualNode)(_: Authentication)).when(*, *).returns(true)
+    //(vum.getUser(_ : Authentication)).when(*).returns(Some(VirtualUsersManager.ROOT))
+*/
+    val _rootPassword = "rootPassword"
+    val fs = new InMemoryFS(_rootPassword)
+
     val f = new {
-      val rootPassword: String = UUID.randomUUID().toString
+      val rootPassword: String = _rootPassword //UUID.randomUUID().toString
       val guestPassword: String = UUID.randomUUID().toString
-      val usersManager: VirtualUsersManager = new VirtualUsersManagerImpl(rootPassword)
+      val usersManager: VirtualUsersManager = fs.vum//new VirtualUsersManagerImpl(rootPassword)
       val rootAuthentication: Authentication = usersManager.logRoot(rootPassword).right.get
       usersManager.addUser("guest", guestPassword)(rootAuthentication)
     }
     f
   }
-
 
   "Login with a valid user" should "be fine" in {
     val f = fixture

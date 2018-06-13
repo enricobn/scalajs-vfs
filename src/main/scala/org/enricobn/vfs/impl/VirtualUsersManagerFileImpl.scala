@@ -21,7 +21,12 @@ object VirtualUsersManagerFileImpl {
 final class VirtualUsersManagerFileImpl(fs: VirtualFS, rootPassword: String) extends VirtualUsersManager {
   import VirtualUsersManagerFileImpl._
 
-  //private var _currentUser: String = VirtualUsersManager.ROOT
+  /**
+    * key = user
+    * value = (authentication, password)
+    */
+  private val usersAuthentication = new scala.collection.mutable.HashMap[String, (Authentication, String)]
+
   private val rootAuthentication = Authentication(createId(), VirtualUsersManager.ROOT)
 
   private val etcFolderE = fs.root.findFolder("etc")(rootAuthentication) match {
@@ -38,52 +43,47 @@ final class VirtualUsersManagerFileImpl(fs: VirtualFS, rootPassword: String) ext
     case Right(None) =>
       val file = etcFolder.touch("passwd")(rootAuthentication).right.get
       file.setContent(Map[String, String]())(rootAuthentication)
+      val permissions = VirtualPermissionsImpl(VirtualPermission.WRITE, VirtualPermission.NONE, VirtualPermission.NONE)
+      file.setPermissions(permissions)(rootAuthentication)
       file
     case _  => throw new RuntimeException("Cannot create passwd")
   }
 
-  /*VirtualUsersManagerImpl.changePassword(passwdFile, VirtualUsersManager.ROOT, rootPassword)
-    .foreach( error => throw new RuntimeException(error.message))
+  passwdFile.setContent(Map(VirtualUsersManager.ROOT -> rootPassword))(rootAuthentication)
+  usersAuthentication(VirtualUsersManager.ROOT) = (rootAuthentication, rootPassword)
+
+  /**
+    * key : user name
+    * value: user password
     */
-
-//  def currentUser: String = _currentUser
-
   private def users = passwdFile.getContent(rootAuthentication).right.get.asInstanceOf[Map[String, String]]
 
-  override def logUser(user: String, password: String): Either[IOError, Authentication] = ???
-    /*if (!users.contains(user)) {
-      "Invalid user.".ioErrorO
+  override def logUser(user: String, password: String): Either[IOError, Authentication] =
+    if (!users.contains(user)) {
+      "Invalid user.".ioErrorE
     } else if (!users.get(user).contains(password)) {
-      "Invalid password.".ioErrorO
+      "Invalid password.".ioErrorE
     } else {
-      _currentUser = user
-      None
+      Right(usersAuthentication(user)._1)
     }
-    */
 
-  override def logRoot(password: String): Either[IOError, Authentication] = ???
-/*    if (rootPassword != password) {
-      "Invalid password.".ioErrorO
-    } else {
-      _currentUser = VirtualUsersManager.ROOT
-      None
-    }
-    */
-
-  override def addUser(user: String, password: String)(implicit authentication: Authentication): Option[IOError] = {
-    val currentUser = getUser.get
-    if (currentUser != VirtualUsersManager.ROOT) {
+  override def addUser(user: String, password: String)(implicit authentication: Authentication): Option[IOError] =
+    if (!getUser.contains(VirtualUsersManager.ROOT)) {
       "Only root can add users.".ioErrorO
     } else if (users.contains(user)) {
       "User already added.".ioErrorO
     } else {
       passwdFile.setContent(users + (user -> password))(rootAuthentication)
+      usersAuthentication(user) = (Authentication(createId(), user), password)
       None
     }
-  }
 
   override def userExists(user: String): Boolean = users.contains(user)
 
-  override def getUser(implicit authentication: Authentication): Option[String] = ???
+  override def getUser(implicit authentication: Authentication): Option[String] =
+    usersAuthentication.find { case (_, (auth, _)) => authentication.id == auth.id } match {
+      case Some((user, (_, _))) => Some(user)
+      case _ => None
+    }
 
 }

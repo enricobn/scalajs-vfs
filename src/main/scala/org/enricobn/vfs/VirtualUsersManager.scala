@@ -13,7 +13,7 @@ trait VirtualUsersManager {
 
   def logUser(user: String, password: String) : Either[IOError, Authentication]
 
-  def logRoot(password: String) : Either[IOError, Authentication]
+  def logRoot(password: String): Either[IOError, Authentication] = logUser(VirtualUsersManager.ROOT, password)
 
   def addUser(user: String, password: String)(implicit authentication: Authentication): Option[IOError]
 

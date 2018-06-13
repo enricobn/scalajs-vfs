@@ -5,25 +5,15 @@ package org.enricobn.vfs
   * Created by enrico on 12/2/16.
   */
 object VirtualPermissions {
-  val EXEC_PERMISSIONS: VirtualPermissions = new VirtualPermissions() {
-    def owner: VirtualPermission = VirtualPermission.EXEC_PERMISSION
 
-    def group: VirtualPermission =VirtualPermission.EXEC_PERMISSION
+  val EXEC_PERMISSIONS = VirtualPermissionsImpl(VirtualPermission.EXEC, VirtualPermission.EXEC, VirtualPermission.EXEC)
 
-    def others: VirtualPermission = VirtualPermission.EXEC_PERMISSION
-  }
-
-  val READ_PERMISSIONS: VirtualPermissions = new VirtualPermissions() {
-    def owner: VirtualPermission = VirtualPermission.READ_PERMISSION
-
-    def group: VirtualPermission = VirtualPermission.READ_PERMISSION
-
-
-    def others: VirtualPermission = VirtualPermission.READ_PERMISSION
-
-  }
+  val READ_PERMISSIONS = VirtualPermissionsImpl(VirtualPermission.READ, VirtualPermission.READ, VirtualPermission.READ)
 
 }
+
+case class VirtualPermissionsImpl(override val owner: VirtualPermission, override val group: VirtualPermission,
+                                  override val others: VirtualPermission) extends VirtualPermissions
 
 trait VirtualPermissions {
 
