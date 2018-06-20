@@ -12,6 +12,8 @@ NEXT
       - creates /bin /usr/bin /var /etc and make properties to access them
       - creates a user manager backed up on /etc/passwd (VirtualUsersManagerFileImpl)
         that when a user is added creates a /home/"user" folder
+    - I don't like VirtualFS constants for root, pathSeparator and so on, probably is better to have them as properties in
+      VirtualFS, but it's not easy, probably I must set the FS in every folder / file
 - VirtualUsersManagerFileImpl:
   - refactor passing the path of the password file
   - now the content of passwd is a Map, so it is not serialized in scalajs-console-game, its good I think, but would it be better
