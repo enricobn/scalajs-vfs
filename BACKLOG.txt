@@ -5,6 +5,17 @@ DOING
 
 NEXT
 -----
+- generalize InMemoryFS and make an UnixLikeInMemoryFS:
+    - InMemoryFS:
+      - don't create a VirtualUsersManager and VirtualSecurityManager inside (pass two functions to the constructor?)
+    - UnixLikeInMemoryFS:
+      - creates /bin /usr/bin /var /etc and make properties to access them
+      - creates a user manager backed up on /etc/passwd (VirtualUsersManagerFileImpl)
+        that when a user is added creates a /home/"user" folder
+- VirtualUsersManagerFileImpl:
+  - refactor passing the path of the password file
+  - now the content of passwd is a Map, so it is not serialized in scalajs-console-game, its good I think, but would it be better
+    to mark it as non serializable (a tag trait NonSerializableContent? )
 - VirtualNode chown, chgrp
 - sbt: tests on publish
 
