@@ -17,7 +17,7 @@ class InMemoryFS(rootPassword: String) extends VirtualFS {
   val vum = new UsersManagerProxy
   val vsm = new SecurityManagerProxy
 
-  val root = new InMemoryFolder(vum, vsm, None, VirtualFS.rootPath.path, VirtualUsersManager.ROOT)
+  val root = InMemoryFolder.root(vum, vsm)
   _vum = new VirtualUsersManagerFileImpl(this, rootPassword)
   _vsm = new VirtualSecurityManagerImpl(_vum)
 

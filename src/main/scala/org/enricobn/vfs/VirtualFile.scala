@@ -19,7 +19,7 @@ trait VirtualFile extends VirtualNode {
         if (clazz.isAssignableFrom(content.getClass)) {
           Right(content.asInstanceOf[T])
         } else {
-          s"Wrong type: ${content.getClass.getSimpleName}".ioErrorE
+          s"Wrong type content for $path. Wanted ${clazz.getSimpleName}, actual ${content.getClass.getSimpleName}".ioErrorE
         }
     }
 

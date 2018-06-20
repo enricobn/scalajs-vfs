@@ -3,11 +3,20 @@ package org.enricobn.vfs.inmemory
 import org.enricobn.vfs.IOError._
 import org.enricobn.vfs._
 
+object InMemoryFolder {
+
+  def root(vum: VirtualUsersManager, vsm: VirtualSecurityManager) =
+    new InMemoryFolder(vum, vsm, None, VirtualFS.root, VirtualUsersManager.ROOT)
+
+}
+
 /**
   * Created by enrico on 12/2/16.
+  *
+  * The only way to create a folder is to use InMemoryFolder.root or using mkdir on an already created folder.
   */
-class InMemoryFolder private[inmemory] (vum: VirtualUsersManager, vsm: VirtualSecurityManager,
-                                        parent: Option[VirtualFolder], name: String, owner: String)
+class InMemoryFolder private (vum: VirtualUsersManager, vsm: VirtualSecurityManager,
+                              parent: Option[VirtualFolder], name: String, owner: String)
 extends InMemoryNode(vum, vsm, parent, name, owner)
 with VirtualFolder {
   private val _files = new scala.collection.mutable.HashSet[VirtualFile]

@@ -15,7 +15,7 @@ extends InMemoryNode(vum, vsm, parent, name, owner) with VirtualFile {
     if (!vsm.checkReadAccess(this)) {
       Left(accessDenied("content read").get)
     } else {
-        Right(_content)
+      Right(_content)
     }
 
   final def setContent(content: AnyRef)(implicit authentication: Authentication): Option[IOError] =

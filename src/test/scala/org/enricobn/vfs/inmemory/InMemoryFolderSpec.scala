@@ -22,11 +22,11 @@ class InMemoryFolderSpec extends FlatSpec with MockFactory with Matchers {
     (vum.getUser(_ : Authentication)).when(*).returns(Some(VirtualUsersManager.ROOT))
 
     val rootPassword = "rootPassword"
-    val _root = new InMemoryFolder(vum, vsm, None, "/", VirtualUsersManager.ROOT)//new InMemoryFS(rootPassword)
+    val _root = InMemoryFolder.root(vum, vsm)
 
     new {
       val authentication: Authentication = Authentication("", VirtualUsersManager.ROOT)//fs.vum.logRoot(rootPassword).right.get
-      val sut = new InMemoryFolder(vum, vsm, Some(_root), "foo", VirtualUsersManager.ROOT)
+      val sut = _root.mkdir("foo")(authentication).right.get
       val root: InMemoryFolder = _root//fs.root
     }
   }
@@ -49,15 +49,17 @@ class InMemoryFolderSpec extends FlatSpec with MockFactory with Matchers {
   "resolveFolderOrError with a non existent path" should "returns a Left(IOError)" in {
     val f = fixture
 
-    val folderE = f.sut.resolveFolderOrError("usr", "error")(f.authentication)
-    assert(folderE.left.get.message == "error")
+    val folderE = f.sut.resolveFolderOrError("usr")(f.authentication)
+    assert(folderE.isLeft)
   }
 
   "ResolveFolder with /" should "return an error" in {
     val f = fixture
 
-    val folderE = f.sut.resolveFolder("/")(f.authentication)
-    assert(folderE.isLeft)
+    val usr = f.sut.mkdir("usr")(f.authentication).right.get
+
+    val folderE = f.sut.resolveFolder("/foo/usr")(f.authentication)
+    assert(folderE.right.get.get.path == "/foo/usr")
   }
 
   "ResolveFolder with .." should "returns the parent folder" in {

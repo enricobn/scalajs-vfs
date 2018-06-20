@@ -52,7 +52,7 @@ trait VirtualFolder extends VirtualNode {
     folders(authentication).right.map(_.filter(predicate))
 
   /**
-    * Resolves the given path relative to this folder. It MUST be a relative path.
+    * Resolves the given path relative to this folder.
     * @return Left(IOError) if an error arises, Right(Some(folder)) if folder found or Right(None) if no folder is found.
     */
   def resolveFolder(path: String)(implicit authentication: Authentication): Either[IOError, Option[VirtualFolder]] = {
@@ -67,7 +67,8 @@ trait VirtualFolder extends VirtualNode {
             case SelfFragment() => Right(Some(actualFolder))
             case ParentFragment() => Right(actualFolder.parent)
             case simple: SimpleFragment => actualFolder.findFolder(simple.name)
-            case _ => Left(IOError(s"Invalid path: '$path'"))
+            case _: RootFragment => Right(Some(root))
+            case _ => Left(IOError(s"Invalid path: '$path' from '${this.path}'"))
           }
         case n@Right(None) => n
         case error => error
@@ -78,11 +79,11 @@ trait VirtualFolder extends VirtualNode {
     * resolves the given path relative to this folder.
     * @return Left(IOError) if an error arises, Right(folder) if folder found or Right(IOError(errorMessage)) if no folder found.
     */
-  def resolveFolderOrError(path: String, errorMessage: String)(implicit authentication: Authentication): Either[IOError, VirtualFolder] = {
+  def resolveFolderOrError(path: String)(implicit authentication: Authentication): Either[IOError, VirtualFolder] = {
     resolveFolder(path) match {
       case Left(error) => Left(error)
       case Right(Some(f)) => Right(f)
-      case Right(None) => Left(IOError(errorMessage))
+      case Right(None) => Left(IOError(s"Cannot resolve path '$path' from '${this.path}'."))
     }
   }
 
