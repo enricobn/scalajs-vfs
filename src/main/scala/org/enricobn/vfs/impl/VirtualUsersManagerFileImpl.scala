@@ -75,7 +75,13 @@ final class VirtualUsersManagerFileImpl(fs: VirtualFS, rootPassword: String) ext
     } else {
       passwdFile.setContent(users + (user -> password))(rootAuthentication)
       usersAuthentication(user) = (Authentication(createId(), user), password)
-      None
+      val createHomeFolder = for {
+        home <- fs.root.resolveFolderOrError("/home")(rootAuthentication).right
+        userFolder <- home.mkdir(user)(rootAuthentication).right
+        _ <- userFolder.chown(user)(rootAuthentication).toLeft(()).right
+      } yield ()
+
+      createHomeFolder.left.toOption
     }
 
   override def userExists(user: String): Boolean = users.contains(user)

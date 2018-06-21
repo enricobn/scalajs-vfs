@@ -8,10 +8,6 @@ NEXT
 - generalize InMemoryFS and make an UnixLikeInMemoryFS:
     - InMemoryFS:
       - don't create a VirtualUsersManager and VirtualSecurityManager inside (pass two functions to the constructor?)
-    - UnixLikeInMemoryFS:
-      - creates /bin /usr/bin /var /etc and make properties to access them
-      - creates a user manager backed up on /etc/passwd (VirtualUsersManagerFileImpl)
-        that when a user is added creates a /home/"user" folder
     - I don't like VirtualFS constants for root, pathSeparator and so on, probably is better to have them as properties in
       VirtualFS, but it's not easy, probably I must set the FS in every folder / file
 - VirtualUsersManagerFileImpl:
