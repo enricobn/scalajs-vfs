@@ -14,6 +14,7 @@ NEXT
   - refactor passing the path of the password file
   - now the content of passwd is a Map, so it is not serialized in scalajs-console-game, its good I think, but would it be better
     to mark it as non serializable (a tag trait NonSerializableContent? )
+- VirtualUsersManager.addUser must return Either[IOError, VirtualFolder] where the folder is the home folder of the user
 - VirtualNode chown, chgrp
 - sbt: tests on publish
 

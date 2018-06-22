@@ -21,7 +21,11 @@ final class VirtualSecurityManagerImpl(vum: VirtualUsersManager) extends Virtual
     checkAccess(node, (vp: VirtualPermission) => vp.execute)
 
   private def checkAccess(node: VirtualNode, permission: VirtualPermission => Boolean)(implicit authentication: Authentication) = {
-    // TODO handle error
+    // TODO handle error better
+    if (vum.getUser.isEmpty) {
+      throw new Exception("Cannot find user for the given authentication.")
+    }
+
     val user = vum.getUser.get
     if (VirtualUsersManager.ROOT == user) {
       true
