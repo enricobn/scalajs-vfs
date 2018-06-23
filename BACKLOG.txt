@@ -1,7 +1,5 @@
 DOING
 ------
-- on branch authentication: use an Authentication object to authenticate a user and don't store current user in VirtualUsersManager
-    - on branch passwd: users must be stored in the filesystem in /etc/passwd
 
 NEXT
 -----
