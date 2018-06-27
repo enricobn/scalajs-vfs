@@ -3,6 +3,8 @@ DOING
 
 NEXT
 -----
+- dates in files
+- size in files (is it possible?)
 - generalize InMemoryFS and make an UnixLikeInMemoryFS:
     - InMemoryFS:
       - don't create a VirtualUsersManager and VirtualSecurityManager inside (pass two functions to the constructor?)
@@ -10,8 +12,8 @@ NEXT
       VirtualFS, but it's not easy, probably I must set the FS in every folder / file
 - VirtualUsersManagerFileImpl:
   - refactor passing the path of the password file
-  - now the content of passwd is a Map, so it is not serialized in scalajs-console-game, its good I think, but would it be better
-    to mark it as non serializable (a tag trait NonSerializableContent? )
+  - now the content of passwd is a Map, so it is not serialized in scalajs-console-game, its good I think, but it would be better
+    to mark it as non serializable: mark the file, since for the same content some file should be serialized and not another.
 - VirtualUsersManager.addUser must return Either[IOError, VirtualFolder] where the folder is the home folder of the user
 - VirtualNode chown, chgrp
 - sbt: tests on publish
