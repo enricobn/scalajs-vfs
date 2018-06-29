@@ -22,4 +22,6 @@ trait VirtualFS {
 
   def root: VirtualFolder
 
+  val notifier: VirtualFSNotifier
+
 }

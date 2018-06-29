@@ -7,7 +7,7 @@ import org.enricobn.vfs._
   */
 
 class InMemoryFile private[inmemory] (vum: VirtualUsersManager, vsm: VirtualSecurityManager,
-                                      parent: Option[InMemoryFolder], name: String, owner: String)
+                                      fsINotify: VirtualFSNotifier, parent: Option[InMemoryFolder], name: String, owner: String)
 extends InMemoryNode(vum, vsm, parent, name, owner) with VirtualFile {
   private var _content: AnyRef = ""
 
@@ -23,6 +23,7 @@ extends InMemoryNode(vum, vsm, parent, name, owner) with VirtualFile {
       accessDenied("content write")
     } else {
       this._content = content
+      fsINotify.notify(this)
       None
     }
 

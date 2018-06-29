@@ -1,6 +1,7 @@
 package org.enricobn.vfs.inmemory
 
-import org.enricobn.vfs.{Authentication, VirtualNode, VirtualSecurityManager, VirtualUsersManager}
+import org.enricobn.vfs._
+import org.enricobn.vfs.impl.VirtualFSNotifierImpl
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -21,11 +22,12 @@ class InMemoryFolderSpec extends FlatSpec with MockFactory with Matchers {
     (vsm.checkReadAccess(_: VirtualNode)(_: Authentication)).when(*, *).returns(true)
     (vum.getUser(_ : Authentication)).when(*).returns(Some(VirtualUsersManager.ROOT))
 
-    val rootPassword = "rootPassword"
-    val _root = InMemoryFolder.root(vum, vsm)
+    val fsINotify = new VirtualFSNotifierImpl()
+
+    val _root = InMemoryFolder.root(vum, vsm, fsINotify)
 
     new {
-      val authentication: Authentication = Authentication("", VirtualUsersManager.ROOT)//fs.vum.logRoot(rootPassword).right.get
+      val authentication: Authentication = Authentication("", VirtualUsersManager.ROOT)
       val sut = _root.mkdir("foo")(authentication).right.get
       val root: InMemoryFolder = _root//fs.root
     }

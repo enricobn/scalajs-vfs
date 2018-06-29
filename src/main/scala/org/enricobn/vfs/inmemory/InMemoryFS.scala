@@ -1,7 +1,7 @@
 package org.enricobn.vfs.inmemory
 
 import org.enricobn.vfs._
-import org.enricobn.vfs.impl.{VirtualSecurityManagerImpl, VirtualUsersManagerFileImpl}
+import org.enricobn.vfs.impl.{VirtualFSNotifierImpl, VirtualSecurityManagerImpl, VirtualUsersManagerFileImpl}
 
 /**
   * Created by enrico on 12/3/16.
@@ -9,7 +9,7 @@ import org.enricobn.vfs.impl.{VirtualSecurityManagerImpl, VirtualUsersManagerFil
 
 object InMemoryFS {
 
-  def apply(rootPassword: String) = {
+  def apply(rootPassword: String): Either[IOError, InMemoryFS] = {
     val fs = new InMemoryFS(rootPassword)
     for {
       vum <- VirtualUsersManagerFileImpl(fs, rootPassword).right
@@ -27,8 +27,9 @@ class InMemoryFS private (rootPassword: String) extends VirtualFS {
   private var _vsm: VirtualSecurityManager = _
   val vum = new UsersManagerProxy
   val vsm = new SecurityManagerProxy
+  override val notifier: VirtualFSNotifier = new VirtualFSNotifierImpl()
 
-  val root: InMemoryFolder = InMemoryFolder.root(vum, vsm)
+  val root: InMemoryFolder = InMemoryFolder.root(vum, vsm, notifier)
 
   private def setVum(vum: VirtualUsersManager): Unit = {
     _vum = vum

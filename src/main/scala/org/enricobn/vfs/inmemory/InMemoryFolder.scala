@@ -5,8 +5,8 @@ import org.enricobn.vfs._
 
 object InMemoryFolder {
 
-  def root(vum: VirtualUsersManager, vsm: VirtualSecurityManager) =
-    new InMemoryFolder(vum, vsm, None, VirtualFS.root, VirtualUsersManager.ROOT)
+  def root(vum: VirtualUsersManager, vsm: VirtualSecurityManager, fsINotify: VirtualFSNotifier) =
+    new InMemoryFolder(vum, vsm, fsINotify, None, VirtualFS.root, VirtualUsersManager.ROOT)
 
 }
 
@@ -16,6 +16,7 @@ object InMemoryFolder {
   * The only way to create a folder is to use InMemoryFolder.root or using mkdir on an already created folder.
   */
 class InMemoryFolder private (vum: VirtualUsersManager, vsm: VirtualSecurityManager,
+                              fsINotify: VirtualFSNotifier,
                               parent: Option[VirtualFolder], name: String, owner: String)
 extends InMemoryNode(vum, vsm, parent, name, owner)
 with VirtualFolder {
@@ -63,8 +64,9 @@ with VirtualFolder {
       .toLeft({
         // TODO handle error
         val user = vum.getUser.get
-        val folder = new InMemoryFolder(vum, vsm, Some(this), name, user)
+        val folder = new InMemoryFolder(vum, vsm, fsINotify, Some(this), name, user)
         _folders.add(folder)
+        fsINotify.notify(this)
         folder
       })
   }
@@ -93,8 +95,9 @@ with VirtualFolder {
       case _ =>
         // TODO handle error
         val user = vum.getUser(authentication).get
-        val file: InMemoryFile = new InMemoryFile (vum, vsm, Some(this), name, user)
+        val file: InMemoryFile = new InMemoryFile (vum, vsm, fsINotify, Some(this), name, user)
         _files.add (file)
+        fsINotify.notify(this)
         Right(file)
     }
   }
