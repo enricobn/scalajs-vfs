@@ -16,21 +16,13 @@ import scala.language.reflectiveCalls
 class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matchers {
 
   def fixture = {
-/*
-    val vsm = stub[VirtualSecurityManager]
-
-    (vsm.checkWriteAccess(_ : VirtualNode)(_ : Authentication)).when(*, *).returns(true)
-    (vsm.checkExecuteAccess(_ : VirtualNode)(_: Authentication)).when(*, *).returns(true)
-    (vsm.checkReadAccess(_: VirtualNode)(_: Authentication)).when(*, *).returns(true)
-    //(vum.getUser(_ : Authentication)).when(*).returns(Some(VirtualUsersManager.ROOT))
-*/
     val _rootPassword = "rootPassword"
-    val fs = new InMemoryFS(_rootPassword)
+    val fs = InMemoryFS(_rootPassword).right.get
 
     val f = new {
       val rootPassword: String = _rootPassword //UUID.randomUUID().toString
       val guestPassword: String = UUID.randomUUID().toString
-      val usersManager: VirtualUsersManager = fs.vum//new VirtualUsersManagerImpl(rootPassword)
+      val usersManager: VirtualUsersManager = fs.vum
       val rootAuthentication: Authentication = usersManager.logRoot(rootPassword).right.get
       usersManager.addUser("guest", guestPassword)(rootAuthentication)
     }

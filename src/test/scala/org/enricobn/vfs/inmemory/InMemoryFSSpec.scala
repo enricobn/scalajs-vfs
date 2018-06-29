@@ -12,18 +12,8 @@ import scala.language.reflectiveCalls
 class InMemoryFSSpec extends FlatSpec with MockFactory with Matchers {
 
   private def fixture = {
-    //val vum = stub[VirtualUsersManager]
-    /*
-    val vsm = stub[VirtualSecurityManager]
-
-    (vsm.checkWriteAccess(_ : VirtualNode)(_ : Authentication)).when(*, *).returns(true)
-    (vsm.checkExecuteAccess(_ : VirtualNode)(_: Authentication)).when(*, *).returns(true)
-    (vsm.checkReadAccess(_: VirtualNode)(_: Authentication)).when(*, *).returns(true)
-    //(vum.getUser(_ : Authentication)).when(*).returns(Some("foo"))
-    */
-
     val rootPassword = "rootPassword"
-    val _fs = new InMemoryFS(rootPassword)
+    val _fs = InMemoryFS(rootPassword).right.get
     val _rootAuthentication: Authentication = _fs.vum.logRoot(rootPassword).right.get
     _fs.vum.addUser("foo", "fooPassword")(_rootAuthentication)
 

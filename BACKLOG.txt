@@ -3,6 +3,7 @@ DOING
 
 NEXT
 -----
+- VirtualUsersManager.addUser must return Either[IOError, VirtualFolder] where the folder is the home folder of the user
 - dates in files
 - size in files (is it possible?)
 - generalize InMemoryFS and make an UnixLikeInMemoryFS:
@@ -14,7 +15,6 @@ NEXT
   - refactor passing the path of the password file
   - now the content of passwd is a Map, so it is not serialized in scalajs-console-game, its good I think, but it would be better
     to mark it as non serializable: mark the file, since for the same content some file should be serialized and not another.
-- VirtualUsersManager.addUser must return Either[IOError, VirtualFolder] where the folder is the home folder of the user
 - VirtualNode chown, chgrp
 - sbt: tests on publish
 

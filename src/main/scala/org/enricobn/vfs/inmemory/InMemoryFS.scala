@@ -3,23 +3,40 @@ package org.enricobn.vfs.inmemory
 import org.enricobn.vfs._
 import org.enricobn.vfs.impl.{VirtualSecurityManagerImpl, VirtualUsersManagerFileImpl}
 
-import scala.scalajs.js.annotation.{JSExport, JSExportAll}
-
 /**
   * Created by enrico on 12/3/16.
   */
 
-@JSExport(name = "InMemoryFS")
-@JSExportAll
-class InMemoryFS(rootPassword: String) extends VirtualFS {
+object InMemoryFS {
+
+  def apply(rootPassword: String) = {
+    val fs = new InMemoryFS(rootPassword)
+    for {
+      vum <- VirtualUsersManagerFileImpl(fs, rootPassword).right
+    } yield {
+      fs.setVum(vum)
+      fs.setVsm(new VirtualSecurityManagerImpl(vum))
+      fs
+    }
+  }
+
+}
+
+class InMemoryFS private (rootPassword: String) extends VirtualFS {
   private var _vum: VirtualUsersManager = _
   private var _vsm: VirtualSecurityManager = _
   val vum = new UsersManagerProxy
   val vsm = new SecurityManagerProxy
 
   val root: InMemoryFolder = InMemoryFolder.root(vum, vsm)
-  _vum = new VirtualUsersManagerFileImpl(this, rootPassword)
-  _vsm = new VirtualSecurityManagerImpl(_vum)
+
+  private def setVum(vum: VirtualUsersManager): Unit = {
+    _vum = vum
+  }
+
+  private def setVsm(vsm: VirtualSecurityManager): Unit = {
+    _vsm = vsm
+  }
 
   class UsersManagerProxy extends VirtualUsersManager {
 
