@@ -20,11 +20,15 @@ class VirtualFSNotifierImpl extends VirtualFSNotifier {
     }
   }
 
-  def removeWatch(node: VirtualNode, subscriber: VirtualFSNotifierPub#Sub): Unit = {
+  override def removeWatch(node: VirtualNode, subscriber: VirtualFSNotifierPub#Sub): Unit = {
     if (publishers.contains(node.path)) {
       val pub = publishers(node.path)
       pub.removeSubscription(subscriber)
     }
   }
 
+  override def shutdown(): Unit = {
+    publishers.foreach(_._2.removeSubscriptions())
+    publishers.clear()
+  }
 }

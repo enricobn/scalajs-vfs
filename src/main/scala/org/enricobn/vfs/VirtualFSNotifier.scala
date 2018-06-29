@@ -10,6 +10,8 @@ trait VirtualFSNotifier {
 
   def notify(node: VirtualNode) : Unit
 
+  def shutdown() : Unit
+
 }
 
 class VirtualFSNotifierPub extends mutable.Publisher[Unit] {
