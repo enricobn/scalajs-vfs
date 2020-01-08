@@ -1,13 +1,13 @@
 package org.enricobn.vfs.impl
 
+import java.util.UUID
+
 import org.enricobn.vfs.IOError._
 import org.enricobn.vfs._
 
-import scala.util.Random
-
 object VirtualUsersManagerFileImpl {
 
-  private def createId() = Random.nextInt().toString
+  private def createId() = UUID.randomUUID().toString
 
   def apply(fs: VirtualFS, rootPassword: String): Either[IOError, VirtualUsersManagerFileImpl] = {
     val rootAuthentication = Authentication(createId(), VirtualUsersManager.ROOT)
