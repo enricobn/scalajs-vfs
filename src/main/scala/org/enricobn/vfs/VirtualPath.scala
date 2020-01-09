@@ -1,5 +1,7 @@
 package org.enricobn.vfs
 
+import org.enricobn.vfs.utils.Utils
+
 /**
   * Created by enrico on 5/9/17.
   */
@@ -38,6 +40,16 @@ object VirtualPath {
 
     VirtualPath(fragments)
   }
+
+  def of(fragments: String*): Either[IOError, VirtualPath] = {
+    import org.enricobn.vfs.utils.Utils.RightBiasedEither
+
+    for {
+      fr <- Utils.lift(fragments.map(PathFragment(_)))
+      path <- Right(VirtualPath(fr))
+    } yield path
+  }
+
 }
 
 case class VirtualPath(fragments: List[PathFragment]) {
@@ -50,16 +62,16 @@ case class VirtualPath(fragments: List[PathFragment]) {
 
   def andThen(path: VirtualPath): VirtualPath = VirtualPath(fragments ++ path.fragments)
 
-  def parentFragments : Option[VirtualPath] =
+  def parentFragments: Option[VirtualPath] =
     if (fragments.length == 1)
       None
     else
-      Some(VirtualPath(fragments.slice(0, fragments.length -1)))
+      Some(VirtualPath(fragments.slice(0, fragments.length - 1)))
 
-  def name : String =
+  def name: String =
     fragments.reverse.head.toString
 
-  def path : String = {
+  def path: String = {
     fragments.foldLeft("")((oldValue, fragment) => {
       val prefix =
         if (oldValue.isEmpty || oldValue == VirtualFS.rootPath.path)
@@ -79,6 +91,22 @@ case class VirtualPath(fragments: List[PathFragment]) {
 
 }
 
+object PathFragment {
+
+  def apply(fragment: String): Either[IOError, PathFragment] =
+    if (fragment == VirtualFS.selfFragment)
+      Right(SelfFragment())
+    else if (fragment == VirtualFS.parentFragment)
+      Right(ParentFragment())
+    else
+      try {
+        Right(SimpleFragment(fragment))
+      } catch {
+        case it: Exception => Left(IOError(it.getMessage))
+      }
+
+}
+
 sealed trait PathFragment
 
 case class RootFragment() extends PathFragment {
@@ -93,10 +121,10 @@ case class SelfFragment() extends PathFragment {
   override def toString: String = VirtualFS.selfFragment
 }
 
-case class SimpleFragment private (name: String) extends PathFragment {
+case class SimpleFragment private(name: String) extends PathFragment {
 
   if (name.contains(VirtualFS.pathSeparator)) {
-    //I like more Either, but this constructor will not be used from clients.
+    // TODO I don't like to throw an exception, can I ignore this?
     throw new IllegalArgumentException("Illegal characters in name.")
   }
 
