@@ -1,5 +1,7 @@
 package org.enricobn.vfs
 
+import org.enricobn.vfs.utils.Utils.RightBiasedEither
+
 import scala.scalajs.js.annotation.JSExportAll
 
 /**
@@ -7,6 +9,12 @@ import scala.scalajs.js.annotation.JSExportAll
   */
 @JSExportAll
 trait VirtualFolder extends VirtualNode {
+
+  lazy val root: VirtualFolder =
+    if (parent.isEmpty)
+      this
+    else
+      parent.get.root
 
   def folders(implicit authentication: Authentication) : Either[IOError, Set[VirtualFolder]]
 
@@ -55,12 +63,18 @@ trait VirtualFolder extends VirtualNode {
     * Resolves the given path relative to this folder.
     * @return Left(IOError) if an error arises, Right(Some(folder)) if folder found or Right(None) if no folder is found.
     */
-  def resolveFolder(path: String)(implicit authentication: Authentication): Either[IOError, Option[VirtualFolder]] = {
-    val virtualPath = VirtualPath(path)
+  def resolveFolder(path: String)(implicit authentication: Authentication): Either[IOError, Option[VirtualFolder]] =
+    resolveFolder(VirtualPath(path))
+
+  /**
+    * Resolves the given path relative to this folder.
+    * @return Left(IOError) if an error arises, Right(Some(folder)) if folder found or Right(None) if no folder is found.
+    */
+  def resolveFolder(path: VirtualPath)(implicit authentication: Authentication): Either[IOError, Option[VirtualFolder]] = {
 
     val folderE : Either[IOError, Option[VirtualFolder]] = Right(Some(this))
 
-    virtualPath.fragments.foldLeft(folderE)((actualFolderE, fragment) =>
+    path.fragments.foldLeft(folderE)((actualFolderE, fragment) =>
       actualFolderE match {
         case Right(Some(actualFolder)) =>
           fragment match {
@@ -68,7 +82,6 @@ trait VirtualFolder extends VirtualNode {
             case ParentFragment() => Right(actualFolder.parent)
             case simple: SimpleFragment => actualFolder.findFolder(simple.name)
             case _: RootFragment => Right(Some(root))
-            case _ => Left(IOError(s"Invalid path: '$path' from '${this.path}'"))
           }
         case n@Right(None) => n
         case error => error
@@ -77,20 +90,45 @@ trait VirtualFolder extends VirtualNode {
 
   /**
     * resolves the given path relative to this folder.
-    * @return Left(IOError) if an error arises, Right(folder) if folder found or Right(IOError(errorMessage)) if no folder found.
+    * @return Left(IOError) if an error arises or no folder found else Right(folder)
     */
   def resolveFolderOrError(path: String)(implicit authentication: Authentication): Either[IOError, VirtualFolder] = {
-    resolveFolder(path) match {
-      case Left(error) => Left(error)
-      case Right(Some(f)) => Right(f)
-      case Right(None) => Left(IOError(s"Cannot resolve path '$path' from '${this.path}'."))
+    noneToIOError(resolveFolder(path), s"Cannot resolve path '$path' from '${this.path}'.")
+  }
+
+  def resolveFile(path: VirtualPath)(implicit authentication: Authentication): Either[IOError, Option[VirtualFile]] = {
+    path.parentFragments match {
+      case Some(parent) => for {
+        parentFolder <- resolveFolderOrError(parent.path)
+        file <- parentFolder.findFile(path.name)
+      } yield file
+      case _ => findFile(path.name)
     }
   }
 
-  lazy val root: VirtualFolder =
-    if (parent.isEmpty)
-      this
-    else
-      parent.get.root
+  def resolveFile(path: String)(implicit authentication: Authentication): Either[IOError, Option[VirtualFile]] =
+    resolveFile(VirtualPath(path))
+
+  def resolveFile(fragments: List[String])(implicit authentication: Authentication): Either[IOError, Option[VirtualFile]] =
+    for {
+      path <- VirtualPath.of(fragments:_*)
+      file <- resolveFile(path)
+    } yield file
+
+  def resolveFileOrError(path: VirtualPath)(implicit authentication: Authentication): Either[IOError, VirtualFile] =
+    noneToIOError(resolveFile(path), s"Cannot resolve path '${path.path}' from '${this.path}'.")
+
+  def resolveFileOrError(path: String)(implicit authentication: Authentication): Either[IOError, VirtualFile] =
+    noneToIOError(resolveFile(path), s"Cannot resolve path '$path' from '${this.path}'.")
+
+  def resolveFileOrError(fragments: List[String])(implicit authentication: Authentication): Either[IOError, VirtualFile] =
+    noneToIOError(resolveFile(fragments), s"Cannot resolve path '$fragments' from '${this.path}'.")
+
+  private def noneToIOError[T](e: Either[IOError, Option[T]], message: String) =
+    e match {
+      case Left(error) => Left(error)
+      case Right(Some(f)) => Right(f)
+      case Right(None) => Left(IOError(message))
+    }
 
 }
