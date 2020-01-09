@@ -10,7 +10,7 @@ object Utils {
   def lift[L,R](xs: GenTraversableOnce[Either[L, R]]) : Either[L, List[R]] =
     xs.foldLeft(Right(List.empty[R]) : Either[L, List[R]]) { (result, value) => {
       result match {
-        case Left(l) => result
+        case Left(_) => result
         case Right(r) =>
           value match {
             case Left(l) => Left(l)
@@ -52,7 +52,7 @@ object Utils {
         case Left(_) => result
         case Right(r) =>
           value match {
-            case (t,Left(l)) => Left(l)
+            case (_,Left(l)) => Left(l)
             case (t,Right(r1)) => Right( (t,r1) :: r)
           }
       }

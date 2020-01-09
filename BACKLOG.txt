@@ -3,10 +3,14 @@ DOING
 
 NEXT
 -----
+- I don' like VirtualPath to depend on VirtualFS constants, I think that there should not be methods that rely on those constants
+  it would be better to use always fragments, so VirtualPath.apply should be like .of
+- ~ is resolved by the shell, all the actual VirtualFS constants should be resolved by the shell?
+- methods resolve* in VirtualFolder are like find* in VirtualShell and resolveOrError in VirtualFolder are like to* in VirtualShell!!!
 - VirtualUsersManager.addUser must return Either[IOError, VirtualFolder] where the folder is the home folder of the user
 - dates in files
 - size in files (is it possible?)
-- generalize InMemoryFS and make an UnixLikeInMemoryFS:
+- generalize InMemoryFS and make an UnixLikeInMemoryFS (there is one UnixLikeInMemoryFS in scalajs-shell!!!):
     - InMemoryFS:
       - don't create a VirtualUsersManager and VirtualSecurityManager inside (pass two functions to the constructor?)
     - I don't like VirtualFS constants for root, pathSeparator and so on, probably is better to have them as properties in
