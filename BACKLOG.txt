@@ -3,6 +3,8 @@ DOING
 
 NEXT
 -----
+- run tests with sbt (js)?
+- I don't remember why I need the org.enricobn.vfs.VirtualUsersManager.getUser method since the user in the Authentication object
 - I don' like VirtualPath to depend on VirtualFS constants, I think that there should not be methods that rely on those constants
   it would be better to use always fragments, so VirtualPath.apply should be like .of
 - ~ is resolved by the shell, all the actual VirtualFS constants should be resolved by the shell?

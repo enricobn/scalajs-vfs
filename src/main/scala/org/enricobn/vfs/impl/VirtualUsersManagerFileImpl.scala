@@ -4,6 +4,7 @@ import java.util.UUID
 
 import org.enricobn.vfs.IOError._
 import org.enricobn.vfs._
+import org.enricobn.vfs.utils.Utils.RightBiasedEither
 
 object VirtualUsersManagerFileImpl {
 
@@ -23,15 +24,13 @@ object VirtualUsersManagerFileImpl {
         case Some(f) => Right(f).right
         case _ => createPasswd(etcFolder, rootAuthentication).right
       }
-      _ <- passwdFile.setContent(Map(VirtualUsersManager.ROOT -> rootPassword))(rootAuthentication).toLeft(()).right
     } yield new VirtualUsersManagerFileImpl(fs, passwdFile, rootAuthentication, rootPassword)
   }
 
   private def createPasswd(etcFolder: VirtualFolder, rootAuthentication: Authentication) = {
-    import org.enricobn.vfs.utils.Utils.RightBiasedEither
     for {
       file <- etcFolder.touch("passwd")(rootAuthentication)
-      _ <- file.setContent(Map[String, String]())(rootAuthentication).toLeft(())
+      _ <- file.setContent(Passwd(Set()))(rootAuthentication).toLeft(())
       permissions = VirtualPermissionsImpl(VirtualPermission.WRITE, VirtualPermission.NONE, VirtualPermission.NONE)
       _ <- file.setPermissions(permissions)(rootAuthentication).toLeft(())
     } yield file
@@ -42,41 +41,37 @@ object VirtualUsersManagerFileImpl {
 /**
   * Created by enrico on 6/10/18.
   */
-final class VirtualUsersManagerFileImpl private (fs: VirtualFS, passwdFile: VirtualFile, rootAuthentication: Authentication, rootPassword: String) extends VirtualUsersManager {
+final class VirtualUsersManagerFileImpl private(fs: VirtualFS, passwdFile: VirtualFile, rootAuthentication: Authentication, rootPassword: String) extends VirtualUsersManager {
+
   import VirtualUsersManagerFileImpl._
 
-  /**
-    * key = user
-    * value = (authentication, password)
-    */
-  private val usersAuthentication = new scala.collection.mutable.HashMap[String, (Authentication, String)]
+  private var passwd = Passwd(Set(AuthenticatedUser(rootAuthentication, VirtualUsersManager.ROOT, rootPassword)))
 
-  usersAuthentication(VirtualUsersManager.ROOT) = (rootAuthentication, rootPassword)
-
-  /**
-    * key : user name
-    * value: user password
-    */
-  private def users = passwdFile.getContent(rootAuthentication).right.get.asInstanceOf[Map[String, String]]
-
-  override def logUser(user: String, password: String): Either[IOError, Authentication] =
-    if (!users.contains(user)) {
+  override def logUser(user: String, password: String): Either[IOError, Authentication] = {
+    if (!passwd.users.exists(_.user == user)) {
       "Invalid user.".ioErrorE
-    } else if (!users.get(user).contains(password)) {
-      "Invalid password.".ioErrorE
     } else {
-      Right(usersAuthentication(user)._1)
+      val maybeUser = passwd.users.find(u => u.user == user && u.password == password)
+      maybeUser match {
+        case Some(AuthenticatedUser(auth, _, _)) => Right(auth)
+        case _ => "Invalid password.".ioErrorE
+      }
     }
+  }
 
   override def addUser(user: String, password: String)(implicit authentication: Authentication): Option[IOError] =
     if (!getUser.contains(VirtualUsersManager.ROOT)) {
       "Only root can add users.".ioErrorO
-    } else if (users.contains(user)) {
+    } else if (passwd.users.exists(_.user == user)) {
       "User already added.".ioErrorO
     } else {
-      passwdFile.setContent(users + (user -> password))(rootAuthentication)
-      usersAuthentication(user) = (Authentication(createId(), user), password)
+      val newUser = AuthenticatedUser(Authentication(createId(), user), user, password)
+      val newUsers = Passwd(passwd.users + newUser)
+      // TODO I don't like it since if there is an error in createHomeFolder the user is already added
+      // but if I don't add it before chown then it fails
+      this.passwd = newUsers
       val createHomeFolder = for {
+        _ <- passwdFile.setContent(newUsers).toLeft(())
         home <- fs.root.resolveFolderOrError("/home")(rootAuthentication).right
         userFolder <- home.mkdir(user)(rootAuthentication).right
         _ <- userFolder.chown(user)(rootAuthentication).toLeft(()).right
@@ -85,12 +80,15 @@ final class VirtualUsersManagerFileImpl private (fs: VirtualFS, passwdFile: Virt
       createHomeFolder.left.toOption
     }
 
-  override def userExists(user: String): Boolean = users.contains(user)
+  override def userExists(user: String): Boolean = passwd.users.exists(_.user == user)
 
   override def getUser(implicit authentication: Authentication): Option[String] =
-    usersAuthentication.find { case (_, (auth, _)) => authentication.id == auth.id } match {
-      case Some((user, (_, _))) => Some(user)
+    passwd.users.find { case AuthenticatedUser(auth, _, _) => authentication.id == auth.id } match {
+      case Some(AuthenticatedUser(_, user, _)) => Some(user)
       case _ => None
     }
 
 }
+case class AuthenticatedUser(auth: Authentication, user: String, password: String)
+
+case class Passwd(users: Set[AuthenticatedUser])

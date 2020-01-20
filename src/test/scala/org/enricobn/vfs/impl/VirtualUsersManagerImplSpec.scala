@@ -19,12 +19,16 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
     val _rootPassword = "rootPassword"
     val fs = InMemoryFS(_rootPassword).right.get
 
+    // TODO extract a case class
     val f = new {
       val rootPassword: String = _rootPassword //UUID.randomUUID().toString
       val guestPassword: String = UUID.randomUUID().toString
       val usersManager: VirtualUsersManager = fs.vum
       val rootAuthentication: Authentication = usersManager.logRoot(rootPassword).right.get
-      usersManager.addUser("guest", guestPassword)(rootAuthentication)
+
+      fs.root.mkdir("home")(rootAuthentication)
+
+      usersManager.addUser("guest", guestPassword)(rootAuthentication).leftSide.foreach(e => fail(e.message))
     }
     f
   }
