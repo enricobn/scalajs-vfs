@@ -10,7 +10,7 @@ import org.enricobn.vfs.impl.{VirtualFSNotifierImpl, VirtualSecurityManagerImpl,
 object InMemoryFS {
 
   def apply(rootPassword: String): Either[IOError, InMemoryFS] = {
-    val fs = new InMemoryFS(rootPassword)
+    val fs = new InMemoryFS()
     for {
       vum <- VirtualUsersManagerFileImpl(fs, rootPassword).right
     } yield {
@@ -20,9 +20,19 @@ object InMemoryFS {
     }
   }
 
+  def apply(vumCreator: InMemoryFS => VirtualUsersManager,
+            vsmCreator: (InMemoryFS, VirtualUsersManager) => VirtualSecurityManager): InMemoryFS = {
+    val fs = new InMemoryFS()
+    val vum = vumCreator(fs)
+    val vsm = vsmCreator(fs, vum)
+    fs.setVum(vum)
+    fs.setVsm(vsm)
+    fs
+  }
+
 }
 
-class InMemoryFS private (rootPassword: String) extends VirtualFS {
+class InMemoryFS private () extends VirtualFS {
   private var _vum: VirtualUsersManager = _
   private var _vsm: VirtualSecurityManager = _
   val vum = new UsersManagerProxy

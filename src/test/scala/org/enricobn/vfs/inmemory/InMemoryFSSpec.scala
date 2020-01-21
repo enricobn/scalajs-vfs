@@ -14,7 +14,9 @@ class InMemoryFSSpec extends FlatSpec with MockFactory with Matchers {
   private def fixture = {
     val rootPassword = "rootPassword"
     val _fs = InMemoryFS(rootPassword).right.get
+
     val _rootAuthentication: Authentication = _fs.vum.logRoot(rootPassword).right.get
+
     _fs.vum.addUser("foo", "fooPassword")(_rootAuthentication)
 
     val f = new {
