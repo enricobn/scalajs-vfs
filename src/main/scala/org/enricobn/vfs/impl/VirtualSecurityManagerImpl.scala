@@ -27,11 +27,13 @@ final class VirtualSecurityManagerImpl(vum: VirtualUsersManager) extends Virtual
     }
 
     val user = vum.getUser.get
+    val group = vum.getGroup.get
     if (VirtualUsersManager.ROOT == user) {
       true
     } else if (node.owner == user) {
       permission.apply(node.permissions.owner)
-      //TODO group
+    } else if (node.group == group) {
+      permission.apply(node.permissions.group)
     } else {
       permission.apply(node.permissions.others)
     }

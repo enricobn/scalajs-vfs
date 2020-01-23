@@ -54,8 +54,8 @@ class InMemoryFS private () extends VirtualFS {
     override def logUser(user: String, password: String): Either[IOError, Authentication] =
       _vum.logUser(user, password)
 
-    override def addUser(user: String, password: String)(implicit authentication: Authentication): Option[IOError] =
-      _vum.addUser(user, password)
+    override def addUser(user: String, password: String, group: String)(implicit authentication: Authentication): Option[IOError] =
+      _vum.addUser(user, password, group)
 
     override def userExists(user: String): Boolean = _vum.userExists(user)
 
@@ -65,6 +65,12 @@ class InMemoryFS private () extends VirtualFS {
       } else {
         _vum.getUser
       }
+
+    override def getGroup(implicit authentication: Authentication): Option[String] =
+      if (_vum == null)
+        Some(VirtualUsersManager.ROOT)
+    else
+      _vum.getGroup
 
   }
 

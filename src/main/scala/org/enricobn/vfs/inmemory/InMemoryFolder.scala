@@ -6,7 +6,7 @@ import org.enricobn.vfs._
 object InMemoryFolder {
 
   def root(vum: VirtualUsersManager, vsm: VirtualSecurityManager, fsINotify: VirtualFSNotifier) =
-    new InMemoryFolder(vum, vsm, fsINotify, None, VirtualFS.root, VirtualUsersManager.ROOT)
+    new InMemoryFolder(vum, vsm, fsINotify, None, VirtualFS.root, VirtualUsersManager.ROOT, VirtualUsersManager.ROOT)
 
 }
 
@@ -15,11 +15,11 @@ object InMemoryFolder {
   *
   * The only way to create a folder is to use InMemoryFolder.root or using mkdir on an already created folder.
   */
-class InMemoryFolder private (vum: VirtualUsersManager, vsm: VirtualSecurityManager,
-                              fsINotify: VirtualFSNotifier,
-                              parent: Option[VirtualFolder], name: String, owner: String)
-extends InMemoryNode(vum, vsm, parent, name, owner)
-with VirtualFolder {
+class InMemoryFolder private(vum: VirtualUsersManager, vsm: VirtualSecurityManager,
+                             fsINotify: VirtualFSNotifier, parent: Option[VirtualFolder], name: String,
+                             owner: String, group: String)
+  extends InMemoryNode(vum, vsm, parent, name, owner, group)
+    with VirtualFolder {
   private val _files = new scala.collection.mutable.HashSet[VirtualFile]
   private val _folders = new scala.collection.mutable.HashSet[InMemoryFolder]
 
@@ -31,24 +31,24 @@ with VirtualFolder {
     permissions
   }
 
-  private def checkExecuteAccess(implicit authentication: Authentication) : Option[IOError] =
+  private def checkExecuteAccess(implicit authentication: Authentication): Option[IOError] =
     if (!vsm.checkExecuteAccess(this)) {
       accessDenied("check execute access")
     } else {
       None
     }
 
-  private def checkWriteAccess(implicit authentication: Authentication) : Option[IOError] =
+  private def checkWriteAccess(implicit authentication: Authentication): Option[IOError] =
     if (!vsm.checkWriteAccess(this)) {
-     accessDenied("check write access")
+      accessDenied("check write access")
     } else {
       None
     }
 
-  def folders(implicit authentication: Authentication) : Either[IOError, Set[VirtualFolder]] =
+  def folders(implicit authentication: Authentication): Either[IOError, Set[VirtualFolder]] =
     checkExecuteAccess.toLeft(_folders.toSet)
 
-  def files(implicit authentication: Authentication) : Either[IOError, Set[VirtualFile]] =
+  def files(implicit authentication: Authentication): Either[IOError, Set[VirtualFile]] =
     checkExecuteAccess.toLeft(_files.toSet)
 
   def mkdir(name: String)(implicit authentication: Authentication): Either[IOError, InMemoryFolder] = {
@@ -64,7 +64,8 @@ with VirtualFolder {
       .toLeft({
         // TODO handle error
         val user = vum.getUser.get
-        val folder = new InMemoryFolder(vum, vsm, fsINotify, Some(this), name, user)
+        val group = vum.getGroup.get
+        val folder = new InMemoryFolder(vum, vsm, fsINotify, Some(this), name, user, group)
         _folders.add(folder)
         fsINotify.notify(this)
         folder
@@ -74,19 +75,19 @@ with VirtualFolder {
   def deleteFile(name: String)(implicit authentication: Authentication): Option[IOError] = {
     checkWriteAccess
       .orElse(findFile(name).right.map {
-          case Some(file) => _files.remove(file.asInstanceOf[InMemoryFile])
-          case _ => IOError("No such file.")
-        }.left.toOption
+        case Some(file) => _files.remove(file.asInstanceOf[InMemoryFile])
+        case _ => IOError("No such file.")
+      }.left.toOption
       )
   }
 
   def deleteFolder(name: String)(implicit authentication: Authentication): Option[IOError] = {
     checkWriteAccess(authentication)
-        .orElse(findFolder(name).right.map {
-          case Some(folder) => _folders.remove(folder.asInstanceOf[InMemoryFolder])
-          case _ => IOError("No such directory.")
-        }.left.toOption
-    )
+      .orElse(findFolder(name).right.map {
+        case Some(folder) => _folders.remove(folder.asInstanceOf[InMemoryFolder])
+        case _ => IOError("No such directory.")
+      }.left.toOption
+      )
   }
 
   def touch(name: String)(implicit authentication: Authentication): Either[IOError, InMemoryFile] = {
@@ -95,8 +96,9 @@ with VirtualFolder {
       case _ =>
         // TODO handle error
         val user = vum.getUser(authentication).get
-        val file: InMemoryFile = new InMemoryFile (vum, vsm, fsINotify, Some(this), name, user)
-        _files.add (file)
+        val group = vum.getGroup.get
+        val file: InMemoryFile = new InMemoryFile(vum, vsm, fsINotify, Some(this), name, user, group)
+        _files.add(file)
         fsINotify.notify(this)
         Right(file)
     }

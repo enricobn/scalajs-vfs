@@ -10,6 +10,8 @@ trait VirtualNode {
 
   def name: String
 
+  def group: String
+
   def parent: Option[VirtualFolder]
 
   def owner: String
@@ -23,6 +25,8 @@ trait VirtualNode {
   def chmod(value: Int)(implicit authentication: Authentication): Option[IOError]
 
   def chown(owner: String)(implicit authentication: Authentication): Option[IOError]
+
+  def chgrp(group: String)(implicit authentication: Authentication): Option[IOError]
 
   def getCurrentUserPermission(implicit authentication: Authentication) : Either[IOError, VirtualPermission]
 

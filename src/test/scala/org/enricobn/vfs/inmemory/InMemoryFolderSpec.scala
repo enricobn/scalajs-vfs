@@ -21,6 +21,7 @@ class InMemoryFolderSpec extends FlatSpec with MockFactory with Matchers {
     (vsm.checkExecuteAccess(_ : VirtualNode)(_: Authentication)).when(*, *).returns(true)
     (vsm.checkReadAccess(_: VirtualNode)(_: Authentication)).when(*, *).returns(true)
     (vum.getUser(_ : Authentication)).when(*).returns(Some(VirtualUsersManager.ROOT))
+    (vum.getGroup(_ : Authentication)).when(*).returns(Some(VirtualUsersManager.ROOT))
 
     val fsINotify = new VirtualFSNotifierImpl()
 

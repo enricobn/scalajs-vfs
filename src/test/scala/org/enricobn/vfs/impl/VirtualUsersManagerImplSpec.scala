@@ -28,7 +28,7 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
 
       fs.root.mkdir("home")(rootAuthentication)
 
-      usersManager.addUser("guest", guestPassword)(rootAuthentication).leftSide.foreach(e => fail(e.message))
+      usersManager.addUser("guest", guestPassword, "guest")(rootAuthentication).leftSide.foreach(e => fail(e.message))
     }
     f
   }
@@ -92,25 +92,25 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
   "Adding an already added user" should "throws an exception" in {
     val f = fixture
 
-    checkIOError(f.usersManager.addUser("guest", f.guestPassword)(f.rootAuthentication), "User already added.")
+    checkIOError(f.usersManager.addUser("guest", f.guestPassword, "guest")(f.rootAuthentication), "User already added.")
   }
 
   "Adding an already added user with invalid password" should "throws an exception" in {
     val f = fixture
 
-    checkIOError(f.usersManager.addUser("guest", "invalid")(f.rootAuthentication), "User already added.")
+    checkIOError(f.usersManager.addUser("guest", "invalid", "guest")(f.rootAuthentication), "User already added.")
   }
 
   "Adding root" should "throws an exception" in {
     val f = fixture
 
-    checkIOError(f.usersManager.addUser("root", f.rootPassword)(f.rootAuthentication), "User already added.")
+    checkIOError(f.usersManager.addUser("root", f.rootPassword, "guest")(f.rootAuthentication), "User already added.")
   }
 
   "Adding root with invalid password" should "throws an exception" in {
     val f = fixture
 
-    checkIOError(f.usersManager.addUser("root", "invalid")(f.rootAuthentication), "User already added.")
+    checkIOError(f.usersManager.addUser("root", "invalid", "guest")(f.rootAuthentication), "User already added.")
   }
 
   "Adding user from another user" should "throws an exception" in {
@@ -118,7 +118,7 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
 
     val authentication = f.usersManager.logUser("guest", f.guestPassword).right.get
 
-    checkIOError(f.usersManager.addUser("brian", "brian")(authentication), "Only root can add users.")
+    checkIOError(f.usersManager.addUser("brian", "brian", "guest")(authentication), "Only root can add users.")
   }
 
   private def checkIOError(result: Either[IOError, Authentication], message: String) =

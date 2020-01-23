@@ -13,7 +13,7 @@ object VirtualUsersManagerFileImpl {
   def apply(fs: VirtualFS, rootPassword: String): Either[IOError, VirtualUsersManagerFileImpl] = {
     val rootAuthentication = Authentication(createId(), VirtualUsersManager.ROOT)
 
-    val passwd = Passwd(Set(AuthenticatedUser(rootAuthentication, VirtualUsersManager.ROOT, rootPassword)))
+    val passwd = Passwd(Set(AuthenticatedUser(rootAuthentication, VirtualUsersManager.ROOT, rootPassword, VirtualUsersManager.ROOT)))
 
     for {
       etcFolderO <- fs.root.findFolder("etc")(rootAuthentication).right
@@ -95,19 +95,19 @@ final class VirtualUsersManagerFileImpl private(fs: VirtualFS, initialPasswd: Pa
     } else {
       val maybeUser = passwd.users.find(u => u.user == user && u.password == password)
       maybeUser match {
-        case Some(AuthenticatedUser(auth, _, _)) => Right(auth)
+        case Some(AuthenticatedUser(auth, _, _, _)) => Right(auth)
         case _ => "Invalid password.".ioErrorE
       }
     }
   }
 
-  override def addUser(user: String, password: String)(implicit authentication: Authentication): Option[IOError] =
+  override def addUser(user: String, password: String, group: String)(implicit authentication: Authentication): Option[IOError] =
     if (!getUser.contains(VirtualUsersManager.ROOT)) {
       "Only root can add users.".ioErrorO
     } else if (passwd.users.exists(_.user == user)) {
       "User already added.".ioErrorO
     } else {
-      val newUser = AuthenticatedUser(Authentication(createId(), user), user, password)
+      val newUser = AuthenticatedUser(Authentication(createId(), user), user, password, group)
       val newUsers = Passwd(passwd.users + newUser)
       // TODO I don't like it since if there is an error in createHomeFolder the user is already added
       // but if I don't add it before chown then it fails
@@ -126,12 +126,18 @@ final class VirtualUsersManagerFileImpl private(fs: VirtualFS, initialPasswd: Pa
   override def userExists(user: String): Boolean = passwd.users.exists(_.user == user)
 
   override def getUser(implicit authentication: Authentication): Option[String] =
-    passwd.users.find { case AuthenticatedUser(auth, _, _) => authentication.id == auth.id } match {
-      case Some(AuthenticatedUser(_, user, _)) => Some(user)
+    passwd.users.find { case AuthenticatedUser(auth, _, _, _) => authentication.id == auth.id } match {
+      case Some(AuthenticatedUser(_, user, _, _)) => Some(user)
+      case _ => None
+    }
+
+  override def getGroup(implicit authentication: Authentication): Option[String] =
+    passwd.users.find { case AuthenticatedUser(auth, _, _, _) => authentication.id == auth.id } match {
+      case Some(AuthenticatedUser(_, _, _, group)) => Some(group)
       case _ => None
     }
 
 }
-case class AuthenticatedUser(auth: Authentication, user: String, password: String)
+case class AuthenticatedUser(auth: Authentication, user: String, password: String, group: String)
 
 case class Passwd(users: Set[AuthenticatedUser])

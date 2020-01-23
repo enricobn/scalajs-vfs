@@ -9,7 +9,7 @@ import scala.collection.immutable.BitSet
   * Created by enrico on 12/2/16.
   */
 object InMemoryNode {
-  def fromOctal(value: Int) : Int = {
+  def fromOctal(value: Int): Int = {
     if (value == 0)
       0
     else {
@@ -19,19 +19,24 @@ object InMemoryNode {
   }
 }
 
-abstract class InMemoryNode private[inmemory] (val vum: VirtualUsersManager, val vsm: VirtualSecurityManager,
-                                      val parent: Option[VirtualFolder], val name: String, val initialOwner: String)
-extends VirtualNode {
+abstract class InMemoryNode private[inmemory](val vum: VirtualUsersManager, val vsm: VirtualSecurityManager,
+                                              val parent: Option[VirtualFolder], val name: String, val initialOwner: String,
+                                              val initialGroup: String)
+  extends VirtualNode {
+
   import InMemoryNode._
 
   private var _owner: String = initialOwner
+  private var _group: String = initialGroup
   private val _permissions: InMemoryPermissions = initialPermissions
 
   final def owner: String = _owner
 
+  override def group: String = _group
+
   final def permissions: VirtualPermissions = _permissions
 
-  def initialPermissions : InMemoryPermissions = new InMemoryPermissions
+  def initialPermissions: InMemoryPermissions = new InMemoryPermissions
 
   final def setExecutable(implicit authentication: Authentication): Option[IOError] = {
     if (!vsm.checkWriteAccess(this)) {
@@ -88,8 +93,18 @@ extends VirtualNode {
       _owner = user
       None
     }
+  override def chgrp(group: String)(implicit authentication: Authentication): Option[IOError] =
+    if (!vsm.checkWriteAccess(this)) {
+      accessDenied("chgrp")
+      // TODO
+    //} else if (!vum.userExists(user)) {
+    //  s"chown of $this : user '$user' not defined.".ioErrorO
+    } else {
+      _group = group
+      None
+    }
 
-  final override def getCurrentUserPermission(implicit authentication: Authentication) : Either[IOError, VirtualPermission] = {
+  final override def getCurrentUserPermission(implicit authentication: Authentication): Either[IOError, VirtualPermission] = {
     // TODO group
     vum.getUser(authentication) match {
       case Some(user) =>

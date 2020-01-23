@@ -15,6 +15,7 @@ class VirtualSecurityManagerImplSpec extends FlatSpec with MockFactory with Matc
   def fixture(user: String): VirtualSecurityManager = {
     val vum = stub[VirtualUsersManager]
     (vum.getUser(_ : Authentication)).when(*).returns(Some(user))
+    (vum.getGroup(_ : Authentication)).when(*).returns(Some(user))
 
     new VirtualSecurityManagerImpl(vum)
 
