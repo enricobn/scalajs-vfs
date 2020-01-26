@@ -15,7 +15,7 @@ import scala.language.reflectiveCalls
   */
 class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matchers {
 
-  def fixture = {
+  private def fixture = {
     val _rootPassword = "rootPassword"
     val fs = InMemoryFS(_rootPassword).right.get
 
@@ -28,7 +28,7 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
 
       fs.root.mkdir("home")(rootAuthentication)
 
-      usersManager.addUser("guest", guestPassword, "guest")(rootAuthentication).leftSide.foreach(e => fail(e.message))
+      usersManager.addUser("guest", guestPassword, "guest")(rootAuthentication).left.foreach(e => fail(e.message))
     }
     f
   }
@@ -53,7 +53,7 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
   "Login with invalid password" should "throws an exception" in {
     val f = fixture
 
-    checkIOError(f.usersManager.logUser("guest", "invalid"), "Invalid password.")
+    checkIOErrorA(f.usersManager.logUser("guest", "invalid"), "Invalid password.")
 
 //      intercept[VirtualSecurityException] {
     //      f.usersManager.logUser("guest", "invalid")
@@ -66,7 +66,7 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
 
     f.usersManager.logUser("guest", f.guestPassword)
 
-    checkIOError(f.usersManager.logRoot("invalid"), "Invalid password.")
+    checkIOErrorA(f.usersManager.logRoot("invalid"), "Invalid password.")
   }
 
   "Login root with null password" should "throws an exception" in {
@@ -74,19 +74,19 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
 
     f.usersManager.logUser("guest", f.guestPassword)
 
-    checkIOError(f.usersManager.logRoot(null), "Invalid password.")
+    checkIOErrorA(f.usersManager.logRoot(null), "Invalid password.")
   }
 
   "Login guest with null password" should "throws an exception" in {
     val f = fixture
 
-    checkIOError(f.usersManager.logUser("guest", null), "Invalid password.")
+    checkIOErrorA(f.usersManager.logUser("guest", null), "Invalid password.")
   }
 
   "Login with invalid user" should "throws an exception" in {
     val f = fixture
 
-    checkIOError(f.usersManager.logUser("invalid", "pwd"), "Invalid user.")
+    checkIOErrorA(f.usersManager.logUser("invalid", "pwd"), "Invalid user.")
   }
 
   "Adding an already added user" should "throws an exception" in {
@@ -121,12 +121,11 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
     checkIOError(f.usersManager.addUser("brian", "brian", "guest")(authentication), "Only root can add users.")
   }
 
-  private def checkIOError(result: Either[IOError, Authentication], message: String) =
+  private def checkIOErrorA(result: Either[IOError, Authentication], message: String) =
     assert(result.left.exists(e => e.message == message))
 
-  private def checkIOError(result: Option[IOError], message: String) =
-    assert(result.exists(e => e.message == message))
-
+  private def checkIOError(result: Either[IOError, Unit], message: String) =
+    assert(result.left.exists(e => e.message == message))
 
   private def createNode(owner: String, name: String): VirtualNode = {
     val node: VirtualNode = stub[VirtualNode]

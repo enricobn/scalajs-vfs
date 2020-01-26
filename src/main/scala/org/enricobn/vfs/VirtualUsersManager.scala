@@ -15,7 +15,7 @@ trait VirtualUsersManager {
 
   def logRoot(password: String): Either[IOError, Authentication] = logUser(VirtualUsersManager.ROOT, password)
 
-  def addUser(user: String, password: String, group: String)(implicit authentication: Authentication): Option[IOError]
+  def addUser(user: String, password: String, group: String)(implicit authentication: Authentication): Either[IOError, Unit]
 
   def userExists(user: String) : Boolean
 

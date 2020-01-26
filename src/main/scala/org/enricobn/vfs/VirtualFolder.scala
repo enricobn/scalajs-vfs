@@ -22,13 +22,13 @@ trait VirtualFolder extends VirtualNode {
 
   def mkdir(name: String)(implicit authentication: Authentication): Either[IOError, VirtualFolder]
 
-  def deleteFile(name: String)(implicit authentication: Authentication): Option[IOError]
+  def deleteFile(name: String)(implicit authentication: Authentication): Either[IOError, Unit]
 
-  def deleteFolder(name: String)(implicit authentication: Authentication): Option[IOError]
+  def deleteFolder(name: String)(implicit authentication: Authentication): Either[IOError, Unit]
 
   def touch(name: String)(implicit authentication: Authentication): Either[IOError, VirtualFile]
 
-  def rename(name: String) : Option[IOError]
+  def rename(name: String) : Either[IOError, Unit]
 
   def createFile(name: String, content: AnyRef)(implicit authentication: Authentication): Either[IOError, VirtualFile]
 

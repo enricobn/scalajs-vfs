@@ -18,15 +18,15 @@ trait VirtualNode {
 
   def permissions: VirtualPermissions
 
-  def setExecutable(implicit authentication: Authentication) : Option[IOError]
+  def setExecutable(implicit authentication: Authentication) : Either[IOError, Unit]
 
-  def setPermissions(permissions: VirtualPermissions)(implicit authentication: Authentication): Option[IOError]
+  def setPermissions(permissions: VirtualPermissions)(implicit authentication: Authentication): Either[IOError, Unit]
 
-  def chmod(value: Int)(implicit authentication: Authentication): Option[IOError]
+  def chmod(value: Int)(implicit authentication: Authentication): Either[IOError, Unit]
 
-  def chown(owner: String)(implicit authentication: Authentication): Option[IOError]
+  def chown(owner: String)(implicit authentication: Authentication): Either[IOError, Unit]
 
-  def chgrp(group: String)(implicit authentication: Authentication): Option[IOError]
+  def chgrp(group: String)(implicit authentication: Authentication): Either[IOError, Unit]
 
   def getCurrentUserPermission(implicit authentication: Authentication) : Either[IOError, VirtualPermission]
 

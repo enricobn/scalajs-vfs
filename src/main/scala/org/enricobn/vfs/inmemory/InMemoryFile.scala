@@ -14,18 +14,18 @@ class InMemoryFile private[inmemory](vum: VirtualUsersManager, vsm: VirtualSecur
 
   final def getContent(implicit authentication: Authentication): Either[IOError, AnyRef] =
     if (!vsm.checkReadAccess(this)) {
-      Left(accessDenied("content read").get)
+      accessDenied("content read")
     } else {
       Right(_content)
     }
 
-  final def setContent(content: AnyRef)(implicit authentication: Authentication): Option[IOError] =
+  final def setContent(content: AnyRef)(implicit authentication: Authentication): Either[IOError, Unit] =
     if (!vsm.checkWriteAccess(this)) {
       accessDenied("content write")
     } else {
       this._content = content
       fsINotify.notify(this)
-      None
+      Right(())
     }
 
 }

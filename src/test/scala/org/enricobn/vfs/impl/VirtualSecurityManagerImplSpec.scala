@@ -8,7 +8,7 @@ import org.scalatest.{FlatSpec, Matchers}
   * Created by enrico on 12/3/16.
   */
 class VirtualSecurityManagerImplSpec extends FlatSpec with MockFactory with Matchers {
-  private implicit val authentication = Authentication("", "")
+  private implicit val authentication: Authentication = Authentication("", "")
 
   def fixture(): VirtualSecurityManager = fixture(VirtualUsersManager.ROOT)
 
@@ -20,9 +20,6 @@ class VirtualSecurityManagerImplSpec extends FlatSpec with MockFactory with Matc
     new VirtualSecurityManagerImpl(vum)
 
   }
-
-  private def checkIOError(result: Option[IOError], message: String) =
-    assert(result.exists(e => e.message == message))
 
   "Check read access for root" should "be fine" in {
     val f = fixture()

@@ -10,7 +10,7 @@ trait VirtualFile extends VirtualNode {
 
   def getContent(implicit authentication: Authentication) : Either[IOError, AnyRef]
 
-  def setContent(content: AnyRef)(implicit authentication: Authentication): Option[IOError]
+  def setContent(content: AnyRef)(implicit authentication: Authentication): Either[IOError, Unit]
 
   def contentAs[T](clazz: Class[T])(implicit authentication: Authentication): Either[IOError, T] =
     getContent(authentication) match {

@@ -54,9 +54,9 @@ object VirtualUsersManagerFileImpl {
   private def createPasswd(etcFolder: VirtualFolder, rootAuthentication: Authentication) = {
     for {
       file <- etcFolder.touch("passwd")(rootAuthentication)
-      _ <- file.setContent(Passwd(Set()))(rootAuthentication).toLeft(())
+      _ <- file.setContent(Passwd(Set()))(rootAuthentication)
       permissions = VirtualPermissionsImpl(VirtualPermission.WRITE, VirtualPermission.NONE, VirtualPermission.NONE)
-      _ <- file.setPermissions(permissions)(rootAuthentication).toLeft(())
+      _ <- file.setPermissions(permissions)(rootAuthentication)
     } yield file
   }
 
@@ -66,13 +66,12 @@ object VirtualUsersManagerFileImpl {
       folder <- fs.root.resolveFolder(vp)
       result <- folder match {
         case Some(f) => Right(f)
-        case _ => {
+        case _ =>
           val parent = vp.parentFragments match {
             case Some(f) => f
             case _ => VirtualPath(List())
           }
           fs.root.resolveFolder(parent).flatMap(_.get.mkdir(vp.name))
-        }
       }
     } yield result
   }
@@ -101,11 +100,11 @@ final class VirtualUsersManagerFileImpl private(fs: VirtualFS, initialPasswd: Pa
     }
   }
 
-  override def addUser(user: String, password: String, group: String)(implicit authentication: Authentication): Option[IOError] =
+  override def addUser(user: String, password: String, group: String)(implicit authentication: Authentication): Either[IOError, Unit] =
     if (!getUser.contains(VirtualUsersManager.ROOT)) {
-      "Only root can add users.".ioErrorO
+      "Only root can add users.".ioErrorE
     } else if (passwd.users.exists(_.user == user)) {
-      "User already added.".ioErrorO
+      "User already added.".ioErrorE
     } else {
       val newUser = AuthenticatedUser(Authentication(createId(), user), user, password, group)
       val newUsers = Passwd(passwd.users + newUser)
@@ -114,13 +113,13 @@ final class VirtualUsersManagerFileImpl private(fs: VirtualFS, initialPasswd: Pa
       this.passwd = newUsers
       val createHomeFolder = for {
         passwdFile <- passwdFileProvider(fs)
-        _ <- passwdFile.setContent(newUsers).toLeft(())
+        _ <- passwdFile.setContent(newUsers)
         home <- fs.root.resolveFolderOrError("/home")(rootAuthentication).right
         userFolder <- home.mkdir(user)(rootAuthentication).right
-        _ <- userFolder.chown(user)(rootAuthentication).toLeft(()).right
+        _ <- userFolder.chown(user)(rootAuthentication).right
       } yield ()
 
-      createHomeFolder.left.toOption
+      createHomeFolder
     }
 
   override def userExists(user: String): Boolean = passwd.users.exists(_.user == user)

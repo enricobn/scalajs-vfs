@@ -38,18 +38,18 @@ abstract class InMemoryNode private[inmemory](val vum: VirtualUsersManager, val 
 
   def initialPermissions: InMemoryPermissions = new InMemoryPermissions
 
-  final def setExecutable(implicit authentication: Authentication): Option[IOError] = {
+  final def setExecutable(implicit authentication: Authentication): Either[IOError, Unit] = {
     if (!vsm.checkWriteAccess(this)) {
       accessDenied("set executable")
     } else {
       _permissions.owner.execute = true
       _permissions.group.execute = true
       _permissions.others.execute = true
-      None
+      Right(())
     }
   }
 
-  final def setPermissions(permissions: VirtualPermissions)(implicit authentication: Authentication): Option[IOError] = {
+  final def setPermissions(permissions: VirtualPermissions)(implicit authentication: Authentication): Either[IOError, Unit] = {
     if (!vsm.checkWriteAccess(this)) {
       accessDenied("set permissions")
     } else {
@@ -62,11 +62,11 @@ abstract class InMemoryNode private[inmemory](val vum: VirtualUsersManager, val 
       _permissions.others.read = permissions.others.read
       _permissions.others.write = permissions.others.write
       _permissions.others.execute = permissions.others.execute
-      None
+      Right(())
     }
   }
 
-  final def chmod(value: Int)(implicit authentication: Authentication): Option[IOError] = {
+  final def chmod(value: Int)(implicit authentication: Authentication): Either[IOError, Unit] = {
     if (!vsm.checkWriteAccess(this)) {
       accessDenied("chmod")
     } else {
@@ -80,20 +80,20 @@ abstract class InMemoryNode private[inmemory](val vum: VirtualUsersManager, val 
       _permissions.others.read = mask(2)
       _permissions.others.write = mask(1)
       _permissions.others.execute = mask(0)
-      None
+      Right(())
     }
   }
 
-  override def chown(user: String)(implicit authentication: Authentication): Option[IOError] =
+  override def chown(user: String)(implicit authentication: Authentication): Either[IOError, Unit] =
     if (!vsm.checkWriteAccess(this)) {
       accessDenied("chown")
     } else if (!vum.userExists(user)) {
-      s"chown of $this : user '$user' not defined.".ioErrorO
+      s"chown of $this : user '$user' not defined.".ioErrorE
     } else {
       _owner = user
-      None
+      Right(())
     }
-  override def chgrp(group: String)(implicit authentication: Authentication): Option[IOError] =
+  override def chgrp(group: String)(implicit authentication: Authentication): Either[IOError, Unit] =
     if (!vsm.checkWriteAccess(this)) {
       accessDenied("chgrp")
       // TODO
@@ -101,7 +101,7 @@ abstract class InMemoryNode private[inmemory](val vum: VirtualUsersManager, val 
     //  s"chown of $this : user '$user' not defined.".ioErrorO
     } else {
       _group = group
-      None
+      Right(())
     }
 
   final override def getCurrentUserPermission(implicit authentication: Authentication): Either[IOError, VirtualPermission] = {
@@ -117,8 +117,8 @@ abstract class InMemoryNode private[inmemory](val vum: VirtualUsersManager, val 
     }
   }
 
-  protected def accessDenied(prefix: String): Some[IOError] = {
-    Some(IOError(s"$prefix of $this : access denied."))
+  protected def accessDenied[T](prefix: String): Left[IOError, T] = {
+    s"$prefix of $this : access denied.".ioErrorE
   }
 
 }
