@@ -4,7 +4,7 @@ import org.enricobn.vfs.utils.Utils.RightBiasedEither
 class VirtualFileWithContent[T <: AnyRef](clazz: Class[T], val fs: VirtualFS, val path: VirtualPath)
                                          (implicit authentication: Authentication) {
 
-  private val fileE = fs.root.resolveFileOrError(path)
+  private def fileE = fs.root.resolveFileOrError(path)
 
   def mapContent(mapFunction: T => T): Either[IOError, Unit] =
     for {
@@ -20,10 +20,18 @@ class VirtualFileWithContent[T <: AnyRef](clazz: Class[T], val fs: VirtualFS, va
       content <- file.getContent
     } yield content.asInstanceOf[T]
 
-  def setContent(content: T): Either[IOError, T] =
+  def setContent(content: T): Either[IOError, Unit] = {
+    val parentFolderE = path.parentFragments match {
+      case Some(parentPath) => fs.root.resolveFolderOrError(parentPath.path)
+      case _ => Right(fs.root)
+    }
+
     for {
-      file <- fileE
-      content <- file.setContent(content)
-    } yield content.asInstanceOf[T]
+      parentFolder <- parentFolderE
+      foundFile <- parentFolder.findFile(path.name)
+      file <- if (foundFile.isEmpty) parentFolder.touch(path.name) else fileE
+      _ <- file.setContent(content)
+    } yield ()
+  }
 
 }

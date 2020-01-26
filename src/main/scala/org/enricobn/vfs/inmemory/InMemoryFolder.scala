@@ -114,11 +114,11 @@ class InMemoryFolder private(vum: VirtualUsersManager, vsm: VirtualSecurityManag
 
   private def checkCreate(name: String)(implicit authentication: Authentication): Either[IOError, Unit] = {
     if (!vsm.checkWriteAccess(this)) {
-      accessDenied(s"touch $name for write access")
+      accessDenied(s"touch $name for write access for user ${authentication.user}")
     } else if (!vsm.checkExecuteAccess(this)) {
-      accessDenied(s"touch $name for execute access")
+      accessDenied(s"touch $name for execute access for user ${authentication.user}")
     } else if (_folders.exists(folder => folder.name == name) || _files.exists(file => file.name == name)) {
-      ("touch: cannot create file ‘" + name + "’: File exists").ioErrorE
+      ("touch: cannot create file ‘" + name + "’: file exists").ioErrorE
     } else {
       Right(())
     }

@@ -29,8 +29,8 @@ class InMemoryFolderSpec extends FlatSpec with MockFactory with Matchers {
 
     new {
       val authentication: Authentication = Authentication("", VirtualUsersManager.ROOT)
-      val sut = _root.mkdir("foo")(authentication).right.get
-      val root: InMemoryFolder = _root//fs.root
+      val sut: VirtualFolder = _root.mkdir("foo")(authentication).right.get
+      val root: VirtualFolder = _root//fs.root
     }
   }
 
@@ -145,5 +145,13 @@ class InMemoryFolderSpec extends FlatSpec with MockFactory with Matchers {
     assert(bin.path == "/foo/usr/bin")
   }
 
+  "touch" should "create a file" in {
+    val f = fixture
+    val usr = f.sut.mkdir("usr")(f.authentication).right.get
+    val bin = usr.mkdir("bin")(f.authentication).right.get
+    bin.touch("file")(f.authentication).right.get
+    val file = bin.findFile("file")(f.authentication).right.get.get
+    assert(file.path == "/foo/usr/bin/file")
+  }
 
 }
