@@ -96,7 +96,7 @@ abstract class InMemoryNode private[inmemory](val vum: VirtualUsersManager, val 
   override def chgrp(group: String)(implicit authentication: Authentication): Either[IOError, Unit] =
     if (!vsm.checkWriteAccess(this)) {
       accessDenied("chgrp")
-      // TODO
+      // TODO a group that does not exist
     //} else if (!vum.userExists(user)) {
     //  s"chown of $this : user '$user' not defined.".ioErrorO
     } else {
@@ -106,14 +106,22 @@ abstract class InMemoryNode private[inmemory](val vum: VirtualUsersManager, val 
 
   final override def getCurrentUserPermission(implicit authentication: Authentication): Either[IOError, VirtualPermission] = {
     // TODO group
-    vum.getUser(authentication) match {
+    vum.getUser match {
       case Some(user) =>
         if (user == owner) {
           Right(_permissions.owner)
         } else {
-          Right(_permissions.others)
+          vum.getGroup match {
+            case Some(group) =>
+              if (group == _group) {
+                Right(_permissions.group)
+              }  else {
+                Right(_permissions.others)
+              }
+            case _ => s"Cannot find group for user $user".ioErrorE
+          }
         }
-      case _ => "Authentication error.".ioErrorE
+      case _ => "Invalid authentication.".ioErrorE
     }
   }
 
