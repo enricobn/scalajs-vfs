@@ -70,10 +70,4 @@ class InMemoryFSSpec extends FlatSpec with MockFactory with Matchers {
     assert(result.owner == "foo")
   }
 
-  "RootPath name" should "be slash" in {
-    val f = fixture
-
-    assert(VirtualFS.rootPath.path == "/")
-  }
-
 }

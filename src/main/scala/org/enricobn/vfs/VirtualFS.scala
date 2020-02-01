@@ -14,8 +14,6 @@ object VirtualFS {
 
   def parentFragment: String = ".."
 
-  def rootPath: VirtualPath = VirtualPath(List(RootFragment()))
-
 }
 
 trait VirtualFS {

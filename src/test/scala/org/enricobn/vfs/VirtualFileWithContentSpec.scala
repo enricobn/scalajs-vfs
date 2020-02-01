@@ -12,7 +12,7 @@ class VirtualFileWithContentSpec extends FlatSpec with MockFactory with Matchers
 
     val helloWorld = for {
       authentication <- fs.vum.logUser("root", "root")
-      path <- VirtualPath.of("home", "afile")
+      path <- VirtualPath.absolute("home", "afile")
       sut = new VirtualFileWithContent(classOf[String], fs, path)(authentication)
       _ <- sut.setContent("Hello world")
       content <- sut.content()(authentication)

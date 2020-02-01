@@ -62,18 +62,9 @@ object VirtualUsersManagerFileImpl {
 
   private def getOrCreate(fs: VirtualFS, path: String*)(implicit authentication: Authentication) = {
     for {
-      vp <- VirtualPath.of(path:_*)
-      folder <- fs.root.resolveFolder(vp)
-      result <- folder match {
-        case Some(f) => Right(f)
-        case _ =>
-          val parent = vp.parentFragments match {
-            case Some(f) => f
-            case _ => VirtualPath(List())
-          }
-          fs.root.resolveFolder(parent).flatMap(_.get.mkdir(vp.name))
-      }
-    } yield result
+      vp <- VirtualPath.absolute(path:_*)
+      folder <- vp.toFolderOrCreate(fs.root)
+    } yield folder
   }
 
 }
@@ -114,7 +105,7 @@ final class VirtualUsersManagerFileImpl private(fs: VirtualFS, initialPasswd: Pa
       val createHomeFolder = for {
         passwdFile <- passwdFileProvider(fs)
         _ <- passwdFile.setContent(newUsers)
-        home <- fs.root.resolveFolderOrError("/home")(rootAuthentication).right
+        home <- VirtualPath.absolute("home").right.flatMap(_.toFolder(fs)).right
         userFolder <- home.mkdir(user)(rootAuthentication).right
         _ <- userFolder.chown(user)(rootAuthentication).right
       } yield ()
