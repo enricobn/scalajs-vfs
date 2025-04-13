@@ -1,21 +1,21 @@
 package org.enricobn.vfs.impl
 
-import org.enricobn.vfs._
+import org.enricobn.vfs.*
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
 
 /**
   * Created by enrico on 12/3/16.
   */
-class VirtualSecurityManagerImplSpec extends FlatSpec with MockFactory with Matchers {
+class VirtualSecurityManagerImplSpec extends AnyFlatSpec with MockFactory {
   private implicit val authentication: Authentication = Authentication("", "")
 
   def fixture(): VirtualSecurityManager = fixture(VirtualUsersManager.ROOT)
 
   def fixture(user: String): VirtualSecurityManager = {
     val vum = stub[VirtualUsersManager]
-    (vum.getUser(_ : Authentication)).when(*).returns(Some(user))
-    (vum.getGroup(_ : Authentication)).when(*).returns(Some(user))
+    (vum.getUser(_: Authentication)).when(*).returns(Some(user))
+    (vum.getGroup(_: Authentication)).when(*).returns(Some(user))
 
     new VirtualSecurityManagerImpl(vum)
 
@@ -48,8 +48,8 @@ class VirtualSecurityManagerImplSpec extends FlatSpec with MockFactory with Matc
     val node = createNode("guest", "text.txt")
     val permission = stub[VirtualPermission]
 
-    (node.permissions.owner _).when().returns(permission)
-    (permission.read _).when().returns(true)
+    (() => node.permissions.owner).when().returns(permission)
+    (() => permission.read).when().returns(true)
 
     assert(f.checkReadAccess(node))
   }
@@ -60,8 +60,8 @@ class VirtualSecurityManagerImplSpec extends FlatSpec with MockFactory with Matc
     val node = createNode("john", "text.txt")
     val permission = stub[VirtualPermission]
 
-    (node.permissions.others _).when().returns(permission)
-    (permission.read _).when().returns(true)
+    (() => node.permissions.others).when().returns(permission)
+    (() => permission.read).when().returns(true)
 
     assert(f.checkReadAccess(node))
   }
@@ -72,8 +72,8 @@ class VirtualSecurityManagerImplSpec extends FlatSpec with MockFactory with Matc
     val node = createNode("guest", "text.txt")
     val permission = stub[VirtualPermission]
 
-    (node.permissions.owner _).when().returns(permission)
-    (permission.read _).when().returns(false)
+    (() => node.permissions.owner).when().returns(permission)
+    (() => permission.read).when().returns(false)
 
     assert(!f.checkReadAccess(node))
   }
@@ -84,18 +84,19 @@ class VirtualSecurityManagerImplSpec extends FlatSpec with MockFactory with Matc
     val node = createNode("john", "text.txt")
     val permission = stub[VirtualPermission]
 
-    (node.permissions.others _).when().returns(permission)
-    (permission.read _).when().returns(false)
+    (() => node.permissions.others).when().returns(permission)
+    (() => permission.read).when().returns(false)
 
     assert(!f.checkReadAccess(node))
   }
 
   private def createNode(owner: String, name: String): VirtualNode = {
-    val node: VirtualNode = stub[VirtualNode]
-    (node.owner _).when().returns(owner)
-    (node.name _).when().returns(name)
-    val permissions: VirtualPermissions = stub[VirtualPermissions]
-    (node.permissions _).when().returns(permissions)
+    val node = stub[VirtualNode]
+    (() => node.owner).when().returns(owner)
+    (() => node.name).when().returns(name)
+    val permissions = stub[VirtualPermissions]
+
+    (() => node.permissions).when().returns(permissions)
     node
   }
 

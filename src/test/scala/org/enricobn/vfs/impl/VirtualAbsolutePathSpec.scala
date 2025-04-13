@@ -1,12 +1,13 @@
 package org.enricobn.vfs.impl
 
+import org.scalamock.matchers.Matchers
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
 
 /**
   * Created by enrico on 1/3/17.
   */
-class VirtualAbsolutePathSpec extends FlatSpec with MockFactory with Matchers {
+class VirtualAbsolutePathSpec extends AnyFlatSpec with MockFactory with Matchers {
 
   "/" should "be root" in {
     val example = VirtualAbsolutePath("/")

@@ -1,14 +1,12 @@
 package org.enricobn.vfs.utils
 
-import scala.collection.GenTraversableOnce
-
 /**
   * Created by enrico on 1/3/17.
   */
 object Utils {
 
-  def lift[L,R](xs: GenTraversableOnce[Either[L, R]]) : Either[L, List[R]] =
-    xs.foldLeft(Right(List.empty[R]) : Either[L, List[R]]) { (result, value) => {
+  def lift[L,R](xs: IterableOnce[Either[L, R]]) : Either[L, List[R]] =
+    xs.iterator.foldLeft(Right(List.empty[R]) : Either[L, List[R]]) { (result, value) => {
       result match {
         case Left(_) => result
         case Right(r) =>
@@ -19,9 +17,9 @@ object Utils {
       }
     }}
 
-  def lift[T](xs: GenTraversableOnce[Option[T]]) : Option[List[T]] = {
+  def lift[T](xs: IterableOnce[Option[T]]) : Option[List[T]] = {
     // I use foldRight since v :: l is faster than l :+ v
-    xs.foldRight(Some(List.empty) : Option[List[T]])((value, result) => {
+    xs.iterator.foldRight(Some(List.empty) : Option[List[T]])((value, result) => {
       result match {
         case Some(l) =>
           value match {
@@ -40,14 +38,14 @@ object Utils {
     * It's used when Option is used as an optional error.
     * @return None if all None otherwise the first Some
     */
-  def mapFirstSome[T,E](xs: GenTraversableOnce[T], fun: T => Option[E]) : Option[E] =
-    xs.foldLeft(Option.empty[E])((result, wh) => result match {
+  def mapFirstSome[T,E](xs: IterableOnce[T], fun: T => Option[E]) : Option[E] =
+    xs.iterator.foldLeft(Option.empty[E])((result, wh) => result match {
       case Some(error) => Some(error)
       case _ => fun(wh)
     })
 
-  def liftTuple[T,TL,TR](xs: GenTraversableOnce[(T, Either[TL,TR])]) : Either[TL,List[(T,TR)]] =
-    xs.foldRight(Right(List.empty[(T,TR)]) : Either[TL,List[(T,TR)]]) { (value, result) => {
+  def liftTuple[T,TL,TR](xs: IterableOnce[(T, Either[TL,TR])]) : Either[TL,List[(T,TR)]] =
+    xs.iterator.foldRight(Right(List.empty[(T,TR)]) : Either[TL,List[(T,TR)]]) { (value, result) => {
       result match {
         case Left(_) => result
         case Right(r) =>
@@ -58,23 +56,12 @@ object Utils {
       }
     }}
 
-  def allSome[T,T1](xs: GenTraversableOnce[(T, Option[T1])]) : List[(T,T1)] =
-    xs.foldRight(List.empty : List[(T,T1)])((value, result) => {
+  def allSome[T,T1](xs: IterableOnce[(T, Option[T1])]) : List[(T,T1)] =
+    xs.iterator.foldRight(List.empty : List[(T,T1)])((value, result) => {
       value match {
         case (t, Some(v)) => (t,v) :: result
         case _ => result
       }
     })
-
-  implicit class RightBiasedEither[A, B](val e: Either[A, B]) extends AnyVal {
-
-    def foreach[U](f: B => U): Unit = e.right.foreach(f)
-
-    def map[C](f: B => C): Either[A, C] = e.right.map(f)
-
-    def flatMap[C](f: B => Either[A, C]): Either[A, C] = e.right.flatMap(f)
-
-  }
-
 
 }

@@ -1,14 +1,13 @@
 package org.enricobn.vfs.impl
 
-import java.util.UUID
+import org.enricobn.vfs.*
+import org.enricobn.vfs.IOError.*
 
-import org.enricobn.vfs.IOError._
-import org.enricobn.vfs._
-import org.enricobn.vfs.utils.Utils.RightBiasedEither
+import scala.util.Random.nextInt
 
 object VirtualUsersManagerFileImpl {
 
-  private def createId() = UUID.randomUUID().toString
+  private def createId() = nextInt().toString
 
   def apply(fs: VirtualFS, rootPassword: String): Either[IOError, VirtualUsersManagerFileImpl] = {
     val rootAuthentication = Authentication(createId(), VirtualUsersManager.ROOT)
@@ -16,15 +15,15 @@ object VirtualUsersManagerFileImpl {
     val passwd = Passwd(Set(AuthenticatedUser(rootAuthentication, VirtualUsersManager.ROOT, rootPassword, VirtualUsersManager.ROOT)))
 
     for {
-      etcFolderO <- fs.root.findFolder("etc")(rootAuthentication).right
+      etcFolderO <- fs.root.findFolder("etc")(rootAuthentication)
       etcFolder <- etcFolderO match {
-        case Some(f) => Right(f).right
-        case _ => fs.root.mkdir("etc")(rootAuthentication).right
+        case Some(f) => Right(f)
+        case _ => fs.root.mkdir("etc")(rootAuthentication)
       }
-      passwdFileO <- etcFolder.findFile("passwd")(rootAuthentication).right
+      passwdFileO <- etcFolder.findFile("passwd")(rootAuthentication)
       passwdFile <- passwdFileO match {
-        case Some(f) => Right(f).right
-        case _ => createPasswd(etcFolder, rootAuthentication).right
+        case Some(f) => Right(f)
+        case _ => createPasswd(etcFolder, rootAuthentication)
       }
       _ <- getOrCreate(fs, "home")(rootAuthentication)
       _ <- getOrCreate(fs, "home", VirtualUsersManager.ROOT)(rootAuthentication)
@@ -36,15 +35,15 @@ object VirtualUsersManagerFileImpl {
     val rootPassword = passwd.users.find(_.user == VirtualUsersManager.ROOT).get.password
 
     for {
-      etcFolderO <- fs.root.findFolder("etc")(rootAuthentication).right
+      etcFolderO <- fs.root.findFolder("etc")(rootAuthentication)
       etcFolder <- etcFolderO match {
-        case Some(f) => Right(f).right
-        case _ => fs.root.mkdir("etc")(rootAuthentication).right
+        case Some(f) => Right(f)
+        case _ => fs.root.mkdir("etc")(rootAuthentication)
       }
-      passwdFileO <- etcFolder.findFile("passwd")(rootAuthentication).right
+      passwdFileO <- etcFolder.findFile("passwd")(rootAuthentication)
       passwdFile <- passwdFileO match {
-        case Some(f) => Right(f).right
-        case _ => createPasswd(etcFolder, rootAuthentication).right
+        case Some(f) => Right(f)
+        case _ => createPasswd(etcFolder, rootAuthentication)
       }
       _ <- getOrCreate(fs, "home")(rootAuthentication)
       _ <- getOrCreate(fs, "home", VirtualUsersManager.ROOT)(rootAuthentication)
@@ -75,7 +74,7 @@ object VirtualUsersManagerFileImpl {
 final class VirtualUsersManagerFileImpl private(fs: VirtualFS, initialPasswd: Passwd, passwdFileProvider: VirtualFS => Either[IOError, VirtualFile],
                                                 rootAuthentication: Authentication, rootPassword: String) extends VirtualUsersManager {
 
-  import VirtualUsersManagerFileImpl._
+  import VirtualUsersManagerFileImpl.*
 
   private var passwd = initialPasswd
 
@@ -105,9 +104,9 @@ final class VirtualUsersManagerFileImpl private(fs: VirtualFS, initialPasswd: Pa
       val createHomeFolder = for {
         passwdFile <- passwdFileProvider(fs)
         _ <- passwdFile.setContent(newUsers)
-        home <- VirtualPath.absolute("home").right.flatMap(_.toFolder(fs)).right
-        userFolder <- home.mkdir(user)(rootAuthentication).right
-        _ <- userFolder.chown(user)(rootAuthentication).right
+        home <- VirtualPath.absolute("home").flatMap(_.toFolder(fs))
+        userFolder <- home.mkdir(user)(rootAuthentication)
+        _ <- userFolder.chown(user)(rootAuthentication)
       } yield ()
 
       createHomeFolder

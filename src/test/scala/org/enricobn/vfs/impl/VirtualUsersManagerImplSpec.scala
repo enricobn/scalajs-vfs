@@ -1,11 +1,10 @@
 package org.enricobn.vfs.impl
 
-import java.util.UUID
-
-import org.enricobn.vfs._
+import org.enricobn.vfs.*
 import org.enricobn.vfs.inmemory.InMemoryFS
+import org.scalamock.matchers.Matchers
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
 
 // to access members of structural types (new {}) without warnings
 import scala.language.reflectiveCalls
@@ -13,18 +12,18 @@ import scala.language.reflectiveCalls
 /**
   * Created by enrico on 12/3/16.
   */
-class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matchers {
+class VirtualUsersManagerImplSpec extends AnyFlatSpec with MockFactory with Matchers {
 
   private def fixture = {
     val _rootPassword = "rootPassword"
-    val fs = InMemoryFS(_rootPassword).right.get
+    val fs = InMemoryFS(_rootPassword).toOption.get
 
     // TODO extract a case class
     val f = new {
       val rootPassword: String = _rootPassword //UUID.randomUUID().toString
-      val guestPassword: String = UUID.randomUUID().toString
+      val guestPassword: String = "guestPassword"
       val usersManager: VirtualUsersManager = fs.vum
-      val rootAuthentication: Authentication = usersManager.logRoot(rootPassword).right.get
+      val rootAuthentication: Authentication = usersManager.logRoot(rootPassword).toOption.get
 
       fs.root.mkdir("home")(rootAuthentication)
 
@@ -37,17 +36,17 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
     val f = fixture
 
     val logUser = f.usersManager.logUser("guest", f.guestPassword)
-    assert(logUser.right.get.user == "guest")
+    assert(logUser.toOption.get.user == "guest")
   }
 
   "Login as user then root" should "be fine" in {
     val f = fixture
 
     var logUser = f.usersManager.logUser("guest", f.guestPassword)
-    assert(logUser.right.get.user == "guest")
+    assert(logUser.toOption.get.user == "guest")
 
     logUser = f.usersManager.logRoot(f.rootPassword)
-    assert(logUser.right.get.user == VirtualUsersManager.ROOT)
+    assert(logUser.toOption.get.user == VirtualUsersManager.ROOT)
   }
 
   "Login with invalid password" should "throws an exception" in {
@@ -116,7 +115,7 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
   "Adding user from another user" should "throws an exception" in {
     val f = fixture
 
-    val authentication = f.usersManager.logUser("guest", f.guestPassword).right.get
+    val authentication = f.usersManager.logUser("guest", f.guestPassword).toOption.get
 
     checkIOError(f.usersManager.addUser("brian", "brian", "guest")(authentication), "Only root can add users.")
   }
@@ -129,10 +128,10 @@ class VirtualUsersManagerImplSpec extends FlatSpec with MockFactory with Matcher
 
   private def createNode(owner: String, name: String): VirtualNode = {
     val node: VirtualNode = stub[VirtualNode]
-    (node.owner _).when().returns(owner)
-    (node.name _).when().returns(name)
+    (() => node.owner).when().returns(owner)
+    (() => node.name).when().returns(name)
     val permissions: VirtualPermissions = stub[VirtualPermissions]
-    (node.permissions _).when().returns(permissions)
+    (() => node.permissions).when().returns(permissions)
     node
   }
 

@@ -1,13 +1,13 @@
 package org.enricobn.vfs
 
 import org.enricobn.vfs.inmemory.InMemoryFS
-import org.enricobn.vfs.utils.Utils.RightBiasedEither
+import org.scalamock.matchers.Matchers
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
 
 import scala.language.reflectiveCalls
 
-class VirtualPathSpec extends FlatSpec with MockFactory with Matchers {
+class VirtualPathSpec extends AnyFlatSpec with MockFactory with Matchers {
 
   private def fixture =
     (for {
@@ -17,22 +17,22 @@ class VirtualPathSpec extends FlatSpec with MockFactory with Matchers {
       user <- home.get.mkdir("user")(authentication)
       _ <- user.touch("userFile")(authentication)
       _ <- fs.root.touch("rootFile")(authentication)
-    } yield (user, authentication)).right.get
+    } yield (user, authentication)).toOption.get
 
   "Simple absolute path" should "work" in {
-    val sut = VirtualPath.absolute("usr").right.get
+    val sut = VirtualPath.absolute("usr").toOption.get
 
     assert(sut.toString == "/usr")
   }
 
   "Absolute path" should "work" in {
-    val sut = VirtualPath.absolute("usr", "bin").right.get
+    val sut = VirtualPath.absolute("usr", "bin").toOption.get
 
     assert(sut.toString == "/usr/bin")
   }
 
   "andThen with fragment" should "work" in {
-    val sut = VirtualPath.absolute("usr").right.get
+    val sut = VirtualPath.absolute("usr").toOption.get
 
     val bin = sut.andThen(SimpleFragment("bin"))
 
@@ -40,31 +40,31 @@ class VirtualPathSpec extends FlatSpec with MockFactory with Matchers {
   }
 
   "andThen with fragment as String" should "work" in {
-    val sut = VirtualPath.absolute("usr").right.get
+    val sut = VirtualPath.absolute("usr").toOption.get
 
-    val bin = sut.andThen("bin").right.get
+    val bin = sut.andThen("bin").toOption.get
 
     assert(bin.toString == "/usr/bin")
   }
 
   "andThen with path as VirtualPath" should "work" in {
-    val sut = VirtualPath.absolute("usr").right.get
+    val sut = VirtualPath.absolute("usr").toOption.get
 
-    val bin = sut.andThen(VirtualPath.relative("bin").right.get)
+    val bin = sut.andThen(VirtualPath.relative("bin").toOption.get)
 
     assert(bin.toString == "/usr/bin")
   }
 
   "toParentFolder" should "work" in {
-    val sut = VirtualPath.absolute("usr", "bin").right.get
+    val sut = VirtualPath.absolute("usr", "bin").toOption.get
 
-    val usr = sut.parentOrError.right.get
+    val usr = sut.parentOrError.toOption.get
 
     assert(usr.toString == "/usr")
   }
 
   "absolute path" should "work from path" in {
-    val sut = VirtualPath.of("/usr/bin").right.get
+    val sut = VirtualPath.of("/usr/bin").toOption.get
 
     assert(sut.isInstanceOf[AbsolutePath])
 
@@ -72,7 +72,7 @@ class VirtualPathSpec extends FlatSpec with MockFactory with Matchers {
   }
 
   "relative path" should "work from path" in {
-    val sut = VirtualPath.of("usr/bin").right.get
+    val sut = VirtualPath.of("usr/bin").toOption.get
 
     assert(sut.isInstanceOf[RelativePath])
 
@@ -80,7 +80,7 @@ class VirtualPathSpec extends FlatSpec with MockFactory with Matchers {
   }
 
   "..." should "not throw an exception" in {
-    assert(VirtualPath.relative("..", "...").right.get.toString == "../...")
+    assert(VirtualPath.relative("..", "...").toOption.get.toString == "../...")
   }
 
   "toFile of userFile from /home/user" should "work" in {
@@ -118,7 +118,7 @@ class VirtualPathSpec extends FlatSpec with MockFactory with Matchers {
   "absolute userFile from user" should "be userFile" in {
     val (user, _) = fixture
 
-    val userFilePath = VirtualPath.absolute(user, VirtualPath.relative("userFile").right.get).right.get
+    val userFilePath = VirtualPath.absolute(user, VirtualPath.relative("userFile").toOption.get).toOption.get
 
     assert("/home/user/userFile" == userFilePath.toString)
 

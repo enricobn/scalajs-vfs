@@ -8,7 +8,7 @@ class VirtualFSNotifierImpl extends VirtualFSNotifier {
 
   private val publishers = mutable.HashMap[String, VirtualFSNotifierPub]()
 
-  override def addWatch(node: VirtualNode, subscriber: VirtualFSNotifierPub#Sub) : Unit = {
+  override def addWatch(node: VirtualNode, subscriber: Unit => Unit) : Unit = {
     val pub = publishers.getOrElseUpdate(node.path, { new VirtualFSNotifierPub()} )
     pub.subscribe(subscriber)
   }
@@ -20,15 +20,15 @@ class VirtualFSNotifierImpl extends VirtualFSNotifier {
     }
   }
 
-  override def removeWatch(node: VirtualNode, subscriber: VirtualFSNotifierPub#Sub): Unit = {
+  override def removeWatch(node: VirtualNode, subscriber: Unit => Unit): Unit = {
     if (publishers.contains(node.path)) {
       val pub = publishers(node.path)
-      pub.removeSubscription(subscriber)
+      pub.remove(subscriber)
     }
   }
 
   override def shutdown(): Unit = {
-    publishers.foreach(_._2.removeSubscriptions())
+    publishers.foreach(_._2.removeAll())
     publishers.clear()
   }
 }

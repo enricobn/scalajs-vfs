@@ -1,11 +1,11 @@
 package org.enricobn.vfs
 
 import org.enricobn.vfs.inmemory.InMemoryFS
-import org.enricobn.vfs.utils.Utils.RightBiasedEither
+import org.scalamock.matchers.Matchers
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
 
-class VirtualFileWithContentSpec extends FlatSpec with MockFactory with Matchers {
+class VirtualFileWithContentSpec extends AnyFlatSpec with MockFactory with Matchers {
 
   "setContent" should "create a file if it does not exist" in {
     val fs = InMemoryFS("root").fold({ e => fail(e.message) }, { folder => folder })

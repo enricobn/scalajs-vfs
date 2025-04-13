@@ -1,16 +1,17 @@
 package org.enricobn.vfs.inmemory
 
-import org.enricobn.vfs._
+import org.enricobn.vfs.*
 import org.enricobn.vfs.impl.VirtualFSNotifierImpl
+import org.scalamock.matchers.Matchers
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
 
 import scala.language.reflectiveCalls
 
 /**
   * Created by enrico on 12/5/16.
   */
-class InMemoryFolderSpec extends FlatSpec with MockFactory with Matchers {
+class InMemoryFolderSpec extends AnyFlatSpec with MockFactory with Matchers {
 
   private def fixture(user: String = VirtualUsersManager.ROOT, group : String = VirtualUsersManager.ROOT) = {
     val _vum = stub[VirtualUsersManager]
@@ -30,7 +31,7 @@ class InMemoryFolderSpec extends FlatSpec with MockFactory with Matchers {
 
     new {
       val authentication: Authentication = Authentication("", VirtualUsersManager.ROOT)
-      val sut: VirtualFolder = _root.mkdir("foo")(authentication).right.get
+      val sut: VirtualFolder = _root.mkdir("foo")(authentication).toOption.get
       val root: VirtualFolder = _root
       val vum: VirtualUsersManager = _vum
     }
@@ -39,16 +40,16 @@ class InMemoryFolderSpec extends FlatSpec with MockFactory with Matchers {
   "resolveFolder" should "returns a sub path" in {
     val f = fixture()
 
-    val usr = f.sut.mkdir("usr")(f.authentication).right.get
+    val usr = f.sut.mkdir("usr")(f.authentication).toOption.get
 
-    assert(f.sut.resolveFolder("usr")(f.authentication).right.get.get == usr)
+    assert(f.sut.resolveFolder("usr")(f.authentication).toOption.get.get == usr)
   }
 
   "resolveFolder with a non existent path" should "returns an Right(None)" in {
     val f = fixture()
 
     val folderE = f.sut.resolveFolder("usr")(f.authentication)
-    assert(folderE.right.get.isEmpty)
+    assert(folderE.toOption.get.isEmpty)
   }
 
   "resolveFolderOrError with a non existent path" should "returns a Left(IOError)" in {
@@ -61,21 +62,21 @@ class InMemoryFolderSpec extends FlatSpec with MockFactory with Matchers {
   "ResolveFolder with /" should "return an error" in {
     val f = fixture()
 
-    f.sut.mkdir("usr")(f.authentication).right.get
+    f.sut.mkdir("usr")(f.authentication).toOption.get
 
     val folderE = f.sut.resolveFolder("/foo/usr")(f.authentication)
-    assert(folderE.right.get.get.path == "/foo/usr")
+    assert(folderE.toOption.get.get.path == "/foo/usr")
   }
 
   "ResolveFolder with .." should "returns the parent folder" in {
     val f = fixture()
 
     val folderE = for {
-      sub <- f.sut.mkdir("sub")(f.authentication).right
-      parent <- sub.resolveFolder("..")(f.authentication).right
+      sub <- f.sut.mkdir("sub")(f.authentication)
+      parent <- sub.resolveFolder("..")(f.authentication)
     } yield parent
 
-    assert(folderE.right.get.get == f.sut)
+    assert(folderE.toOption.get.get == f.sut)
   }
 
  */
@@ -141,7 +142,7 @@ class InMemoryFolderSpec extends FlatSpec with MockFactory with Matchers {
   "/foo/usr path" should "be /foo/usr" in {
     val f = fixture()
 
-    val usr = f.sut.mkdir("usr")(f.authentication).right.get
+    val usr = f.sut.mkdir("usr")(f.authentication).toOption.get
 
     assert(usr.path == "/foo/usr")
   }
@@ -149,8 +150,8 @@ class InMemoryFolderSpec extends FlatSpec with MockFactory with Matchers {
   "/foo/usr/bin" should "be /foo/usr/bin" in {
     val f = fixture()
 
-    val usr = f.sut.mkdir("usr")(f.authentication).right.get
-    val bin = usr.mkdir("bin")(f.authentication).right.get
+    val usr = f.sut.mkdir("usr")(f.authentication).toOption.get
+    val bin = usr.mkdir("bin")(f.authentication).toOption.get
 
     assert(bin.path == "/foo/usr/bin")
   }
@@ -160,53 +161,53 @@ class InMemoryFolderSpec extends FlatSpec with MockFactory with Matchers {
 
     implicit val authentication: Authentication = f.authentication
 
-    val usr = f.sut.mkdir("usr").right.get
-    val bin = usr.mkdir("bin").right.get
-    bin.touch("file").right.get
-    val file = bin.findFile("file").right.get.get
+    val usr = f.sut.mkdir("usr").toOption.get
+    val bin = usr.mkdir("bin").toOption.get
+    bin.touch("file").toOption.get
+    val file = bin.findFile("file").toOption.get.get
     assert(file.path == "/foo/usr/bin/file")
   }
 
   "when the owner is not the authenticated user, but the group is the same then the permissions" should "be the group permissions" in {
     val f = fixture("user", "group")
 
-    f.sut.chgrp("group")(f.authentication).right.get
-    f.sut.chown("anotheruser")(f.authentication).right.get
-    f.sut.chmod(707)(f.authentication).right.get
+    f.sut.chgrp("group")(f.authentication).toOption.get
+    f.sut.chown("anotheruser")(f.authentication).toOption.get
+    f.sut.chmod(707)(f.authentication).toOption.get
 
     val permissions = f.sut.getCurrentUserPermission(f.authentication)
 
-    assert(!permissions.right.get.write)
-    assert(!permissions.right.get.read)
-    assert(!permissions.right.get.execute)
+    assert(!permissions.toOption.get.write)
+    assert(!permissions.toOption.get.read)
+    assert(!permissions.toOption.get.execute)
   }
 
   "when the owner is the authenticated user then the permissions" should "be the user permissions" in {
     val f = fixture("user", "group")
 
-    f.sut.chgrp("group")(f.authentication).right.get
-    f.sut.chown("user")(f.authentication).right.get
-    f.sut.chmod(77)(f.authentication).right.get
+    f.sut.chgrp("group")(f.authentication).toOption.get
+    f.sut.chown("user")(f.authentication).toOption.get
+    f.sut.chmod(77)(f.authentication).toOption.get
 
     val permissions = f.sut.getCurrentUserPermission(f.authentication)
 
-    assert(!permissions.right.get.write)
-    assert(!permissions.right.get.read)
-    assert(!permissions.right.get.execute)
+    assert(!permissions.toOption.get.write)
+    assert(!permissions.toOption.get.read)
+    assert(!permissions.toOption.get.execute)
   }
 
   "when the owner is not the authenticated user and is not the same group then the permissions" should "be the other permissions" in {
     val f = fixture("user", "group")
 
-    f.sut.chgrp("anothergroup")(f.authentication).right.get
-    f.sut.chown("anotheruser")(f.authentication).right.get
-    f.sut.chmod(770)(f.authentication).right.get
+    f.sut.chgrp("anothergroup")(f.authentication).toOption.get
+    f.sut.chown("anotheruser")(f.authentication).toOption.get
+    f.sut.chmod(770)(f.authentication).toOption.get
 
     val permissions = f.sut.getCurrentUserPermission(f.authentication)
 
-    assert(!permissions.right.get.write)
-    assert(!permissions.right.get.read)
-    assert(!permissions.right.get.execute)
+    assert(!permissions.toOption.get.write)
+    assert(!permissions.toOption.get.read)
+    assert(!permissions.toOption.get.execute)
   }
 
 }

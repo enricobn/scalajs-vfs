@@ -1,14 +1,14 @@
 package org.enricobn.vfs.utils
 
+import org.enricobn.vfs.utils.Utils.*
+import org.scalamock.matchers.Matchers
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.{FlatSpec, Matchers}
-
-import Utils._
+import org.scalatest.flatspec.AnyFlatSpec
 
 /**
   * Created by enrico on 1/3/17.
   */
-class LiftSpec extends FlatSpec with MockFactory with Matchers {
+class LiftSpec extends AnyFlatSpec with MockFactory with Matchers {
 
   "lifting Some" should "return Some of list" in {
     val example = List(Some("hello"))

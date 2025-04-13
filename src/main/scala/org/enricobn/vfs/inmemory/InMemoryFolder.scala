@@ -1,8 +1,7 @@
 package org.enricobn.vfs.inmemory
 
-import org.enricobn.vfs.IOError._
-import org.enricobn.vfs._
-import org.enricobn.vfs.utils.Utils.RightBiasedEither
+import org.enricobn.vfs.*
+import org.enricobn.vfs.IOError.*
 
 object InMemoryFolder {
 
@@ -46,11 +45,11 @@ class InMemoryFolder private(vum: VirtualUsersManager, vsm: VirtualSecurityManag
       Right(())
     }
 
-  def folders(implicit authentication: Authentication): Either[IOError, Set[VirtualFolder]] =
-    checkExecuteAccess.map(_ => _folders.toSet)
+  def folders(implicit authentication: Authentication): Either[IOError, Seq[VirtualFolder]] =
+    checkExecuteAccess.map(_ => _folders.toSeq.sorted)
 
-  def files(implicit authentication: Authentication): Either[IOError, Set[VirtualFile]] =
-    checkExecuteAccess.map(_ => _files.toSet)
+  def files(implicit authentication: Authentication): Either[IOError, Seq[VirtualFile]] =
+    checkExecuteAccess.map(_ => _files.toSeq.sorted)
 
   def mkdir(name: String)(implicit authentication: Authentication): Either[IOError, InMemoryFolder] =
     for {
@@ -108,7 +107,7 @@ class InMemoryFolder private(vum: VirtualUsersManager, vsm: VirtualSecurityManag
 
   def createFile(name: String, content: AnyRef)(implicit authentication: Authentication): Either[IOError, VirtualFile] =
     for {
-      createdFile <- touch(name).right
+      createdFile <- touch(name)
       _ <- createdFile.setContent(content)
     } yield createdFile
 
@@ -123,4 +122,6 @@ class InMemoryFolder private(vum: VirtualUsersManager, vsm: VirtualSecurityManag
       Right(())
     }
   }
+
+  override def compare(that: VirtualNode): Int = super.compareTo(that)
 }

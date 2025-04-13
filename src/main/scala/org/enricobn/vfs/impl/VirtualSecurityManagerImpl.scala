@@ -1,13 +1,13 @@
 package org.enricobn.vfs.impl
 
-import org.enricobn.vfs._
+import org.enricobn.vfs.*
 
-import scala.scalajs.js.annotation.{JSExport, JSExportAll}
+import scala.scalajs.js.annotation.{JSExportAll, JSExportTopLevel}
 
 /**
   * Created by enrico on 12/2/16.
   */
-@JSExport(name = "VirtualSecurityManagerImpl")
+@JSExportTopLevel(name = "VirtualSecurityManagerImpl")
 @JSExportAll
 final class VirtualSecurityManagerImpl(vum: VirtualUsersManager) extends VirtualSecurityManager {
 

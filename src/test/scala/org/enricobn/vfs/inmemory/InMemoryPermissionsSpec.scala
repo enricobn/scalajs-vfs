@@ -1,12 +1,13 @@
 package org.enricobn.vfs.inmemory
 
+import org.scalamock.matchers.Matchers
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
 
 /**
   * Created by enrico on 1/3/17.
   */
-class InMemoryPermissionsSpec extends FlatSpec with MockFactory with Matchers {
+class InMemoryPermissionsSpec extends AnyFlatSpec with MockFactory with Matchers {
 
   "octal of rwx rwx rwx" should "be 777" in {
     val example = new InMemoryPermissions

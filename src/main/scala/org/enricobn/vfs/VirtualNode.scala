@@ -6,7 +6,7 @@ import scala.scalajs.js.annotation.JSExportAll
   * Created by enrico on 12/2/16.
   */
 @JSExportAll
-trait VirtualNode {
+trait VirtualNode extends Ordered[VirtualNode] {
 
   def name: String
 
@@ -56,4 +56,7 @@ trait VirtualNode {
 
   override def toString: String = path
 
+  //override def compare(x: VirtualNode, y: VirtualNode): Int = x.name.compareTo(y.name)
+
+  override def compareTo(that: VirtualNode): Int = name.compareTo(that.name)
 }

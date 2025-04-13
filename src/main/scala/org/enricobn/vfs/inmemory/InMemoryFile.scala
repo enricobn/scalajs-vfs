@@ -1,6 +1,6 @@
 package org.enricobn.vfs.inmemory
 
-import org.enricobn.vfs._
+import org.enricobn.vfs.*
 
 /**
   * Created by enrico on 12/2/16.
@@ -28,4 +28,5 @@ class InMemoryFile private[inmemory](vum: VirtualUsersManager, vsm: VirtualSecur
       Right(())
     }
 
+  override def compare(that: VirtualNode): Int = super.compareTo(that)
 }

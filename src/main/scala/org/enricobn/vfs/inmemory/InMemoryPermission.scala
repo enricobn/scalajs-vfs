@@ -17,17 +17,17 @@ final class InMemoryPermission extends VirtualPermission {
   def execute: Boolean = _execute
 
   // TODO check permissions?
-  private[inmemory] def read_=(_read : Boolean) {
+  private[inmemory] def read_=(_read : Boolean): Unit = {
     this._read = _read
   }
 
   // TODO check permissions?
-  private[inmemory] def write_=(_write : Boolean) {
+  private[inmemory] def write_=(_write : Boolean): Unit = {
     this._write = _write
   }
 
   // TODO check permissions?
-  private[inmemory] def execute_=(_execute : Boolean) {
+  private[inmemory] def execute_=(_execute : Boolean): Unit = {
     this._execute = _execute
   }
 }

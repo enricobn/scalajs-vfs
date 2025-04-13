@@ -1,8 +1,7 @@
 package org.enricobn.vfs
 
-import org.enricobn.vfs.IOError._
+import org.enricobn.vfs.IOError.*
 import org.enricobn.vfs.utils.Utils
-import org.enricobn.vfs.utils.Utils.RightBiasedEither
 
 /**
   * Created by enrico on 5/9/17.
@@ -30,9 +29,9 @@ object VirtualPath {
     val fragments = relativePath.split(VirtualFS.pathSeparator).toList
 
     if (absolute) {
-      VirtualPath.relative(fragments: _*).right.map(p => AbsolutePath(p))
+      VirtualPath.relative(fragments *).map(p => AbsolutePath(p))
     } else {
-      VirtualPath.relative(fragments: _*)
+      VirtualPath.relative(fragments *)
     }
   }
 
@@ -44,7 +43,7 @@ object VirtualPath {
   }
 
   def absolute(fragments: String*): Either[IOError, AbsolutePath] = {
-    relative(fragments:_*).right.map(path => AbsolutePath(path))
+    relative(fragments *).map(path => AbsolutePath(path))
   }
 
   def absolute(from: VirtualFolder, path: VirtualPath): Either[IOError, AbsolutePath] =
@@ -105,7 +104,7 @@ sealed trait VirtualPath {
 
 }
 
-case class AbsolutePath private (relativePath: RelativePath) extends VirtualPath {
+case class AbsolutePath(relativePath: RelativePath) extends VirtualPath {
 
   def name: String = if (relativePath.fragments.isEmpty) VirtualFS.pathSeparator else relativePath.fragments.reverse.head.toString
 
@@ -138,13 +137,13 @@ case class AbsolutePath private (relativePath: RelativePath) extends VirtualPath
   def andThen(path: RelativePath): AbsolutePath = AbsolutePath(relativePath.andThen(path))
 
   def andThen(fragments: String*): Either[IOError, AbsolutePath] =
-    VirtualPath.relative(fragments:_*).right.map(path => andThen(path))
+    VirtualPath.relative(fragments *).map(path => andThen(path))
 
   override def toString: String = VirtualFS.pathSeparator + relativePath
 
 }
 
-case class RelativePath private (fragments: Seq[PathFragment]) extends VirtualPath {
+case class RelativePath(fragments: Seq[PathFragment]) extends VirtualPath {
 
   def name: String = if (fragments.isEmpty) "" else fragments.reverse.head.toString
 
@@ -175,7 +174,7 @@ case class RelativePath private (fragments: Seq[PathFragment]) extends VirtualPa
     }
 
   def toFile(from: VirtualFolder)(implicit authentication: Authentication) : Either[IOError, VirtualFile] =
-    toParentFolder(from).right.flatMap(_.findFile(name) match {
+    toParentFolder(from).flatMap(_.findFile(name) match {
       case Right(Some(f)) => Right(f)
       case Right(None) => s"File '$this' not found from $from".ioErrorE
       case Left(e) => Left(e)
@@ -186,7 +185,7 @@ case class RelativePath private (fragments: Seq[PathFragment]) extends VirtualPa
   def andThen(path: RelativePath): RelativePath = RelativePath(fragments ++ path.fragments)
 
   override def andThen(fragments: String*): Either[IOError, RelativePath] =
-    VirtualPath.relative(fragments:_*).right.map(path => andThen(path))
+    VirtualPath.relative(fragments *).map(path => andThen(path))
 
   def parent: Option[RelativePath] =
     if (fragments.length == 1)
@@ -235,7 +234,7 @@ object SelfFragment extends PathFragment {
   override def toString: String = VirtualFS.selfFragment
 }
 
-case class SimpleFragment private(name: String) extends PathFragment {
+case class SimpleFragment(name: String) extends PathFragment {
 
   if (name.contains(VirtualFS.pathSeparator)) {
     // TODO I don't like to throw an exception, can I ignore this?

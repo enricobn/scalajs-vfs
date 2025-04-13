@@ -1,7 +1,5 @@
 package org.enricobn.vfs
 
-import org.enricobn.vfs.utils.Utils.RightBiasedEither
-
 class VirtualFileWithContent[T <: AnyRef](clazz: Class[T], val fs: VirtualFS, val path: AbsolutePath)
                                          (implicit authentication: Authentication) {
 
