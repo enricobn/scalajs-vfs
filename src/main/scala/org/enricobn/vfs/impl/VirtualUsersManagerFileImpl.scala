@@ -61,7 +61,7 @@ object VirtualUsersManagerFileImpl {
 
   private def getOrCreate(fs: VirtualFS, path: String*)(implicit authentication: Authentication) = {
     for {
-      vp <- VirtualPath.absolute(path:_*)
+      vp <- VirtualPath.absolute(path*)
       folder <- vp.toFolderOrCreate(fs.root)
     } yield folder
   }

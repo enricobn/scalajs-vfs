@@ -6,14 +6,14 @@ import org.scalamock.matchers.Matchers
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.flatspec.AnyFlatSpec
 
-import scala.language.reflectiveCalls
+import scala.reflect.Selectable.reflectiveSelectable
 
 /**
   * Created by enrico on 12/5/16.
   */
 class InMemoryFolderSpec extends AnyFlatSpec with MockFactory with Matchers {
 
-  private def fixture(user: String = VirtualUsersManager.ROOT, group : String = VirtualUsersManager.ROOT) = {
+  private def fixture(user: String = VirtualUsersManager.ROOT, group : String = VirtualUsersManager.ROOT): Object {val authentication: Authentication; val sut: VirtualFolder; val root: VirtualFolder; val vum: VirtualUsersManager} = {
     val _vum = stub[VirtualUsersManager]
 
     val _vsm = stub[VirtualSecurityManager]

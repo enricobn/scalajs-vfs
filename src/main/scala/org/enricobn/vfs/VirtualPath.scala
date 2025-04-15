@@ -67,7 +67,7 @@ sealed trait VirtualPath {
   def parentOrError : Either[IOError, VirtualPath] =
     parent match {
       case Some(x) => Right(x)
-      case None => s"Cannot find parent of $this".ioErrorE
+      case None => s"Cannot find parent of ${this.toString}".ioErrorE
     }
 
   def toParentFolder(from: VirtualFolder)(implicit authentication: Authentication) : Either[IOError, VirtualFolder]
@@ -170,13 +170,13 @@ case class RelativePath(fragments: Seq[PathFragment]) extends VirtualPath {
       })
       Right(folder)
     } catch  {
-      case _ : Exception => s"Invalid folder $this from $from".ioErrorE
+      case _ : Exception => s"Invalid folder ${this.toString} from ${from.toString}".ioErrorE
     }
 
   def toFile(from: VirtualFolder)(implicit authentication: Authentication) : Either[IOError, VirtualFile] =
     toParentFolder(from).flatMap(_.findFile(name) match {
       case Right(Some(f)) => Right(f)
-      case Right(None) => s"File '$this' not found from $from".ioErrorE
+      case Right(None) => s"File '${this.toString}' not found from ${from.toString}".ioErrorE
       case Left(e) => Left(e)
     })
 

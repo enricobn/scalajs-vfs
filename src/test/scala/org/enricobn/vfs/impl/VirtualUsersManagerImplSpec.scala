@@ -6,20 +6,19 @@ import org.scalamock.matchers.Matchers
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.flatspec.AnyFlatSpec
 
-// to access members of structural types (new {}) without warnings
-import scala.language.reflectiveCalls
+import scala.reflect.Selectable.reflectiveSelectable
 
 /**
   * Created by enrico on 12/3/16.
   */
 class VirtualUsersManagerImplSpec extends AnyFlatSpec with MockFactory with Matchers {
 
-  private def fixture = {
+  private def fixture: Object {val rootPassword: String; val guestPassword: String; val usersManager: VirtualUsersManager; val rootAuthentication: Authentication} = {
     val _rootPassword = "rootPassword"
     val fs = InMemoryFS(_rootPassword).toOption.get
 
     // TODO extract a case class
-    val f = new {
+    new {
       val rootPassword: String = _rootPassword //UUID.randomUUID().toString
       val guestPassword: String = "guestPassword"
       val usersManager: VirtualUsersManager = fs.vum
@@ -29,7 +28,6 @@ class VirtualUsersManagerImplSpec extends AnyFlatSpec with MockFactory with Matc
 
       usersManager.addUser("guest", guestPassword, "guest")(rootAuthentication).left.foreach(e => fail(e.message))
     }
-    f
   }
 
   "Login with a valid user" should "be fine" in {
@@ -54,7 +52,7 @@ class VirtualUsersManagerImplSpec extends AnyFlatSpec with MockFactory with Matc
 
     checkIOErrorA(f.usersManager.logUser("guest", "invalid"), "Invalid password.")
 
-//      intercept[VirtualSecurityException] {
+    //      intercept[VirtualSecurityException] {
     //      f.usersManager.logUser("guest", "invalid")
     //    }
     //    assert(caught.getMessage == "Invalid password.")

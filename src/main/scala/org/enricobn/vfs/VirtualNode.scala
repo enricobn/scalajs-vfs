@@ -44,7 +44,7 @@ trait VirtualNode extends Ordered[VirtualNode] {
 
   override def equals(other: Any): Boolean = other match {
     case that: VirtualNode =>
-      (that canEqual this) &&
+      that.canEqual(this) &&
         path == that.path
     case _ => false
   }

@@ -5,14 +5,14 @@ import org.scalamock.matchers.Matchers
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.flatspec.AnyFlatSpec
 
-import scala.language.reflectiveCalls
+import scala.reflect.Selectable.reflectiveSelectable
 
 /**
   * Created by enrico on 12/3/16.
   */
 class InMemoryFSSpec extends AnyFlatSpec with MockFactory with Matchers {
 
-  private def fixture = {
+  private def fixture: Object {val fs: InMemoryFS; val usersManager: VirtualUsersManager; val fooAuthentication: Authentication; val rootAuthentication: Authentication} = {
     val rootPassword = "rootPassword"
     val _fs = InMemoryFS(rootPassword).toOption.get
 
@@ -20,13 +20,13 @@ class InMemoryFSSpec extends AnyFlatSpec with MockFactory with Matchers {
 
     _fs.vum.addUser("foo", "fooPassword", "foo")(_rootAuthentication)
 
-    val f = new {
+    new {
       val fs: InMemoryFS = _fs
       val usersManager: VirtualUsersManager = fs.vum
       val fooAuthentication: Authentication = fs.vum.logUser("foo", "fooPassword").toOption.get
       val rootAuthentication: Authentication = _rootAuthentication
     }
-    f
+    
   }
 
   "Root name" should "be slash" in {

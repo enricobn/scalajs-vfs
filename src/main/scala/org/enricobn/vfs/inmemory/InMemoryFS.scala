@@ -3,6 +3,8 @@ package org.enricobn.vfs.inmemory
 import org.enricobn.vfs.*
 import org.enricobn.vfs.impl.{VirtualFSNotifierImpl, VirtualSecurityManagerImpl, VirtualUsersManagerFileImpl}
 
+import scala.compiletime.uninitialized
+
 /**
   * Created by enrico on 12/3/16.
   */
@@ -33,8 +35,8 @@ object InMemoryFS {
 }
 
 class InMemoryFS private () extends VirtualFS {
-  private var _vum: VirtualUsersManager = _
-  private var _vsm: VirtualSecurityManager = _
+  private var _vum: VirtualUsersManager = uninitialized
+  private var _vsm: VirtualSecurityManager = uninitialized
   val vum = new UsersManagerProxy
   val vsm = new SecurityManagerProxy
   override val notifier: VirtualFSNotifier = new VirtualFSNotifierImpl()
@@ -69,9 +71,8 @@ class InMemoryFS private () extends VirtualFS {
     override def getGroup(implicit authentication: Authentication): Option[String] =
       if (_vum == null)
         Some(VirtualUsersManager.ROOT)
-    else
-      _vum.getGroup
-
+      else
+        _vum.getGroup
   }
 
   class SecurityManagerProxy extends VirtualSecurityManager {

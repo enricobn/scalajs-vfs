@@ -1,7 +1,7 @@
 package org.enricobn.vfs.inmemory
 
-import org.enricobn.vfs.IOError._
-import org.enricobn.vfs._
+import org.enricobn.vfs.*
+import org.enricobn.vfs.IOError.*
 
 import scala.collection.immutable.BitSet
 
@@ -24,7 +24,7 @@ abstract class InMemoryNode private[inmemory](val vum: VirtualUsersManager, val 
                                               val initialGroup: String)
   extends VirtualNode {
 
-  import InMemoryNode._
+  import InMemoryNode.*
 
   private var _owner: String = initialOwner
   private var _group: String = initialGroup
@@ -126,7 +126,7 @@ abstract class InMemoryNode private[inmemory](val vum: VirtualUsersManager, val 
   }
 
   protected def accessDenied[T](prefix: String): Left[IOError, T] = {
-    s"$prefix of $this : access denied.".ioErrorE
+    s"$prefix of ${this.toString} : access denied.".ioErrorE
   }
 
 }
